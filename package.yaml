@@ -23,6 +23,7 @@ dependencies:
 - mtl
 - containers
 - template-haskell
+- vector
 
 library:
   source-dirs: src

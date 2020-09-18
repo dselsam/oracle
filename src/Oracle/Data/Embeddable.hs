@@ -6,9 +6,10 @@ Authors: Daniel Selsam
 
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Oracle.Embeddable where
+module Oracle.Data.Embeddable where
 
-import Oracle.Grid
+import Oracle.Data.Grid (Grid)
+import qualified Oracle.Data.Grid as Grid
 
 import Data.Sequence (Seq)
 
@@ -74,7 +75,7 @@ instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (Map a b) whe
   toEmbeddable = EMap . map (\(k, v) -> (toEmbeddable k, toEmbeddable v)) . Map.assocs
 
 instance (HasToEmbeddable a) => HasToEmbeddable (Grid a) where
-  toEmbeddable xs = EGrid (fmap toEmbeddable xs)
+  toEmbeddable xs = EGrid (Grid.map (\_ -> toEmbeddable) xs)
 
 instance HasToEmbeddable Exp where
   toEmbeddable = EExp

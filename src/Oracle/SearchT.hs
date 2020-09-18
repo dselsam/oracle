@@ -6,7 +6,7 @@ Authors: Daniel Selsam
 
 module Oracle.SearchT where
 
-import Oracle.Embeddable
+import Oracle.Data.Embeddable
 
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq

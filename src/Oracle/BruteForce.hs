@@ -9,7 +9,7 @@ Authors: Daniel Selsam
 {-# LANGUAGE LambdaCase #-}
 module Oracle.BruteForce where
 
-import Oracle.Embeddable
+import Oracle.Data.Embeddable
 import Oracle.SearchT
 
 import Data.Sequence (Seq, (|>), (<|), (><))
