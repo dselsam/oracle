@@ -19,6 +19,10 @@ description:         Please see the README on GitHub at <https://github.com/dsel
 
 dependencies:
 - base >= 4.7 && < 5
+- hspec
+- mtl
+- containers
+- template-haskell
 
 library:
   source-dirs: src
@@ -36,7 +40,7 @@ executables:
 
 tests:
   oracle-test:
-    main:                Spec.hs
+    main:                Test.hs
     source-dirs:         test
     ghc-options:
     - -threaded
