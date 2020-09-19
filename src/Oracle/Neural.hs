@@ -23,24 +23,26 @@ import qualified Data.Sequence as Seq
 
 import GHC.Exts (toList)
 
+import Control.Monad.Trans (MonadIO)
+
 import Data.Vector (Vector)
 import qualified Data.Vector as Vector
 
 data Result = Result {
-  policyHead :: Maybe (Vector Float),
+  policyHead :: Vector Float,
   valueHead  :: Maybe Float
   } deriving (Eq, Ord, Show)
 
-queryUniversalOracle :: ChoicePoint m a -> IO Result
+queryUniversalOracle :: (MonadIO m2) => ChoicePoint m a -> m2 Result
 queryUniversalOracle cp = pure $ Result {
-  policyHead = Just $ fmap (\_->x) (choices query),
+  policyHead = fmap (\_->x) (choices query),
   valueHead  = Just 0.5
   }
   where
     query = cp2query cp
     x = 1.0 / (fromIntegral $ Vector.length $ choices query)
 
-trainUniversalOracle :: ChoicePoint m a -> Result -> IO ()
+trainUniversalOracle :: (MonadIO m2) => ChoicePoint m a -> Result -> m2 ()
 trainUniversalOracle _ _ = pure ()
 
 data Query = Query {

@@ -5,23 +5,26 @@ Authors: Daniel Selsam
 -}
 
 {-# LANGUAGE ScopedTypeVariables #-}
-module Test.Oracle.Search.BruteForce where
+module Test.Oracle.Search.BestFirst where
 
 import Oracle.SearchT
-import Oracle.Search.BruteForce
+import Oracle.Search.BestFirst
 import qualified Oracle.Search.Result as Result
+import qualified Oracle.Neural as Neural
 
 import GHC.Exts (toList)
 import Test.Hspec
 import Control.Monad (guard)
 import Control.Monad.Identity (Identity, runIdentity)
 
-search :: Int -> SearchAlg -> SearchT Identity a -> [a]
-search maxResults searchAlg f =
-  let opts = BruteForceOptions maxResults 10000 searchAlg
-      results = runIdentity $ bruteForceSearch opts f
-  in
-    map Result.value (toList results)
+search :: Int -> SearchT IO a -> IO [a]
+search maxResults f = do
+  let opts = BestFirstOptions maxResults 10000
+  let oracle cp = do
+        Neural.Result pi _ <- Neural.queryUniversalOracle cp
+        pure pi
+  results <- bestFirstSearch opts oracle f
+  pure $ map Result.value (toList results)
 
 testSimple = describe "testSimple" $ do
   let odds = do
@@ -31,11 +34,9 @@ testSimple = describe "testSimple" $ do
           guard $ mod (n1 + n2) 2 == 1
           pure (n1, n2)
 
-  it "depth first should give [(0, 1), (0, 3)]" $ do
-    search 2 DepthFirst odds `shouldBe` [(0, 1), (0, 3)]
+  result1 <- runIO (search 2 odds)
+  it "uniform best-first should be breadth-first [(1, 0), (3, 0)]" $ do
+    result1 `shouldBe` [(1, 0), (3, 0)]
 
-  it "breadth first should give [(1, 0), (3, 0)]" $ do
-    search 2 BreadthFirst odds `shouldBe` [(1, 0), (3, 0)]
-
-tests = describe "Test.Oracle.Search.BruteForce" $ do
+tests = describe "Test.Oracle.Search.BestFirst" $ do
   testSimple

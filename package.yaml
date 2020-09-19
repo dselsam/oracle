@@ -23,6 +23,7 @@ dependencies:
 - mtl
 - containers
 - vector
+- pqueue
 
 library:
   source-dirs: src
