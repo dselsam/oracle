@@ -1,6 +1,8 @@
 module Main where
 
-import Lib
+import Oracle.Data.Embeddable
+import Oracle.SearchT
+import Oracle.Neural
 
 main :: IO ()
-main = someFunc
+main = putStrLn "Search Transformer and the Universal Oracle"
