@@ -7,8 +7,8 @@ Authors: Daniel Selsam
 module Main where
 
 import Test.Hspec
-import qualified Test.BruteForce
+import qualified Test.Oracle.Search.BruteForce
 
 main :: IO ()
 main = hspec $ do
-  Test.BruteForce.tests
+  Test.Oracle.Search.BruteForce.tests

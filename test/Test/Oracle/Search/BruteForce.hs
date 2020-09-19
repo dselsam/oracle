@@ -5,10 +5,10 @@ Authors: Daniel Selsam
 -}
 
 {-# LANGUAGE ScopedTypeVariables #-}
-module Test.BruteForce where
+module Test.Oracle.Search.BruteForce where
 
 import Oracle.SearchT
-import Oracle.BruteForce
+import Oracle.Search.BruteForce
 import GHC.Exts (toList)
 import Test.Hspec
 import Control.Monad (guard)

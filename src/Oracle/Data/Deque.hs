@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Selsam
 -}
 
-module Oracle.Deque where
+module Oracle.Data.Deque where
 
 import Data.Sequence as Seq
 import qualified Data.Sequence as Seq

@@ -22,7 +22,6 @@ dependencies:
 - hspec
 - mtl
 - containers
-- template-haskell
 - vector
 
 library:

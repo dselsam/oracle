@@ -19,8 +19,6 @@ import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-import Language.Haskell.TH (Exp)
-
 {-
 We want to compose SearchT programs that use different datastructures for their snapshots and choices,
 while requiring that they are all embeddable, one way or another.
@@ -41,7 +39,6 @@ data Embeddable =
   | EGrid (Grid Embeddable)
   | ERecord String [(String, Embeddable)]
   | EData String [(String, Embeddable)] -- TODO: more data?
-  | EExp Exp
   deriving (Eq, Ord, Show)
 
 class HasToEmbeddable a where
@@ -76,6 +73,3 @@ instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (Map a b) whe
 
 instance (HasToEmbeddable a) => HasToEmbeddable (Grid a) where
   toEmbeddable xs = EGrid (Grid.map (\_ -> toEmbeddable) xs)
-
-instance HasToEmbeddable Exp where
-  toEmbeddable = EExp

@@ -7,7 +7,7 @@ Authors: Daniel Selsam
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
-module Oracle.BruteForce where
+module Oracle.Search.BruteForce where
 
 import Oracle.Data.Embeddable
 import Oracle.SearchT
@@ -15,8 +15,8 @@ import Oracle.SearchT
 import Data.Sequence (Seq, (|>), (<|), (><))
 import qualified Data.Sequence as Seq
 
-import Oracle.Deque (Deque)
-import qualified Oracle.Deque as Deque
+import Oracle.Data.Deque (Deque)
+import qualified Oracle.Data.Deque as Deque
 
 import Data.Foldable (for_)
 import Control.Monad.Trans (lift)
