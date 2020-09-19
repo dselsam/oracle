@@ -9,8 +9,10 @@ module Main where
 import Test.Hspec
 import qualified Test.Oracle.Search.BruteForce
 import qualified Test.Oracle.Search.BestFirst
+import qualified Test.Oracle.Examples.Synth.Basic
 
 main :: IO ()
 main = hspec $ do
   Test.Oracle.Search.BruteForce.tests
   Test.Oracle.Search.BestFirst.tests
+  Test.Oracle.Examples.Synth.Basic.tests

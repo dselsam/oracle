@@ -2,8 +2,12 @@
 Copyright (c) 2020 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Selsam
+
+The Search Transformer: a monad transformer that adds non-deterministic choice.
+Note that the entire search is conducted inside the monad it transforms.
 -}
 
+{-# LANGUAGE LambdaCase #-}
 module Oracle.SearchT where
 
 import Oracle.Data.Embeddable
@@ -35,6 +39,11 @@ choice cp cs = SearchT $ pure $ Choice $ ChoicePoint (toEmbeddable cp) $ fmap (\
 
 oneOf :: (Monad m, HasToEmbeddable cp, HasToEmbeddable c) => cp -> [c] -> SearchT m c
 oneOf cp cs = SearchT $ pure $ Choice $ ChoicePoint (toEmbeddable cp) $ fmap (\c -> (toEmbeddable c, pure c)) (Seq.fromList cs)
+
+liftO :: (Monad m) => Maybe a -> SearchT m a
+liftO opt = case opt of
+  Nothing -> deadend "liftO failed"
+  Just x  -> pure x
 
 -- Instances
 
