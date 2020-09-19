@@ -2,6 +2,11 @@
 Copyright (c) 2020 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Selsam
+
+We want to compose SearchT programs that use different datastructures for their snapshots and choices,
+while requiring that they are all embeddable, one way or another.
+The natural solution may seem to return a bundle (α, HasEmbed α), but this bumps universe levels and causes headaches.
+For now, we commit to an abstract representation of things that can be embedded, that can live in Type.
 -}
 
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -18,13 +23,6 @@ import qualified Data.Set as Set
 
 import Data.Map (Map)
 import qualified Data.Map as Map
-
-{-
-We want to compose SearchT programs that use different datastructures for their snapshots and choices,
-while requiring that they are all embeddable, one way or another.
-The natural solution may seem to return a bundle (α, HasEmbed α), but this bumps universe levels and causes headaches.
-For now, we commit to an abstract representation of things that can be embedded, that can live in Type.
--}
 
 data Embeddable =
   EUnit ()
@@ -53,13 +51,13 @@ instance HasToEmbeddable Bool where
 instance HasToEmbeddable Int where
   toEmbeddable = EInt
 
-instance HasToEmbeddable String where
+instance {-# OVERLAPS #-} HasToEmbeddable String where
   toEmbeddable = EString
 
 instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (a, b) where
   toEmbeddable (a, b) = EPair (toEmbeddable a, toEmbeddable b)
 
-instance (HasToEmbeddable a) => HasToEmbeddable [a] where
+instance {-# OVERLAPPABLE #-} (HasToEmbeddable a) => HasToEmbeddable [a] where
   toEmbeddable xs = EList (map toEmbeddable xs)
 
 instance (HasToEmbeddable a) => HasToEmbeddable (Seq a) where

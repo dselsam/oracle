@@ -40,6 +40,15 @@ choice cp cs = SearchT $ pure $ Choice $ ChoicePoint (toEmbeddable cp) $ fmap (\
 oneOf :: (Monad m, HasToEmbeddable cp, HasToEmbeddable c) => cp -> [c] -> SearchT m c
 oneOf cp cs = SearchT $ pure $ Choice $ ChoicePoint (toEmbeddable cp) $ fmap (\c -> (toEmbeddable c, pure c)) (Seq.fromList cs)
 
+-- TODO: we need decide how much flexibility users should have in terms of embeddables.
+type NamedChoice a = (String, a)
+
+choiceN :: (Monad m, HasToEmbeddable cp) => cp -> [NamedChoice (SearchT m a)] -> SearchT m a
+choiceN cp cs = SearchT $ pure $ Choice $ ChoicePoint (toEmbeddable cp) $ fmap (\(n, psi) -> (toEmbeddable n, psi)) (Seq.fromList cs)
+
+oneOfN :: (Monad m, HasToEmbeddable cp) => cp -> [NamedChoice c] -> SearchT m c
+oneOfN cp cs = SearchT $ pure $ Choice $ ChoicePoint (toEmbeddable cp) $ fmap (\(n, c) -> (toEmbeddable n, pure c)) (Seq.fromList cs)
+
 liftO :: (Monad m) => Maybe a -> SearchT m a
 liftO opt = case opt of
   Nothing -> deadend "liftO failed"

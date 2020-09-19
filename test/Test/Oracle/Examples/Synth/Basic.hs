@@ -10,15 +10,10 @@ import Oracle.SearchT
 import Oracle.Search.BruteForce
 import qualified Oracle.Search.Result as Result
 
-import Oracle.Examples.Synth.ISPInfo (ISPInfo(ISPInfo))
+import Oracle.Examples.Synth
 import qualified Oracle.Examples.Synth.ISPInfo as ISPInfo
-
-import Oracle.Examples.Synth.ISP (ISP(ISP), ForTest)
 import qualified Oracle.Examples.Synth.ISP as ISP
-
-import Oracle.Examples.Synth.Specs.ESpec (ESpec(ESpec))
 import qualified Oracle.Examples.Synth.Specs.ESpec as ESpec
-
 import qualified Oracle.Examples.Synth.Basic as Synth
 
 import GHC.Exts (toList)
@@ -27,7 +22,7 @@ import Control.Monad (guard)
 import Control.Monad.Identity (Identity, runIdentity)
 
 find1 :: SearchT Identity (ISP a) -> [ForTest a]
-find1 f = let opts = BruteForceOptions 1 10000 DepthFirst
+find1 f = let opts = BruteForceOptions 1 10000 BreadthFirst
               results = runIdentity $ bruteForceSearch opts f
           in
             map (ISP.test . Result.value) (toList results)
