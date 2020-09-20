@@ -48,7 +48,7 @@ decisionTreeNaive fuel synthLeaf spec
 
   where
     basecase (ESpec info (_, ctx) labels)
-      | ISPInfo.isEmpty info = pure $ ISP [] []
+      | ISPInfo.isEmpty info = deadend ""
       | otherwise            = synthLeaf $ spec { ESpec.ctx = ctx }
 
     core fuel spec@(ESpec info (bs, ctx) labels) = choiceN (snapshot "leafVsNode" fuel spec) $ [

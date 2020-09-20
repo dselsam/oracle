@@ -15,15 +15,27 @@ module Oracle.Examples.Synth.Features where
 
 import Oracle.Data.Embeddable
 import Oracle.SearchT (NamedChoice)
+import Oracle.Examples.Synth.ISPInfo (ISPInfo)
 import Oracle.Examples.Synth.ISP (ISP)
 import qualified Oracle.Examples.Synth.ISP as ISP
 import qualified Oracle.Util.List as List
 
 import Oracle.Examples.Synth.SynthContext
 
+import qualified Data.List as List
+
 newtype Features a = Features {
   choices :: [NamedChoice (ISP a)]
   } deriving (Eq, Ord, Show)
+
+isEmpty :: Features a -> Bool
+isEmpty = List.null . choices
+
+getInfo :: Features a -> ISPInfo
+getInfo = ISP.getInfo . getISP 0
+
+getISP :: Int -> Features a -> ISP a
+getISP i (Features features) = snd $ features List.!! i
 
 instance SynthContext (Features a) where
   partitionOn bs (Features choices) =

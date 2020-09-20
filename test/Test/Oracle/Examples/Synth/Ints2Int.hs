@@ -39,31 +39,31 @@ testBasic = describe "testBasic" $ do
   let inputs   = Features [phi1, phi2, phi3, phi4, phi5]
 
   it "const" $ do
-    find1 (Synth.ints2Int maxDepth $ ESpec info inputs [1, 1, 1]) `shouldBe` [[1, 1]]
+    find1 (Synth.ints2int maxDepth $ ESpec info inputs [1, 1, 1]) `shouldBe` [[1, 1]]
 
   it "input" $ do
-    find1 (Synth.ints2Int maxDepth $ ESpec info inputs [3, 2, 1]) `shouldBe` [[5, 4]]
+    find1 (Synth.ints2int maxDepth $ ESpec info inputs [3, 2, 1]) `shouldBe` [[5, 4]]
 
   it "input+const" $ do
-    find1 (Synth.ints2Int maxDepth $ ESpec info inputs [33, 32, 31]) `shouldBe` [[35, 34]]
+    find1 (Synth.ints2int maxDepth $ ESpec info inputs [33, 32, 31]) `shouldBe` [[35, 34]]
 
   it "input+input" $ do
-    find1 (Synth.ints2Int maxDepth $ ESpec info inputs [2, 9, 6]) `shouldBe` [[6, 11]]
+    find1 (Synth.ints2int maxDepth $ ESpec info inputs [2, 9, 6]) `shouldBe` [[6, 11]]
 
   it "input-const" $ do
-    find1 (Synth.ints2Int maxDepth $ ESpec info inputs [-7, -8, -9])  `shouldBe` [[-5, -6]]
+    find1 (Synth.ints2int maxDepth $ ESpec info inputs [-7, -8, -9])  `shouldBe` [[-5, -6]]
 
   it "input*const" $ do
-    find1 (Synth.ints2Int maxDepth $ ESpec info inputs [30, 20, 10]) `shouldBe` [[50, 40]]
+    find1 (Synth.ints2int maxDepth $ ESpec info inputs [30, 20, 10]) `shouldBe` [[50, 40]]
 
   it "const/input" $ do
-    find1 (Synth.ints2Int maxDepth $ ESpec info inputs [40, 60, 120]) `shouldBe` [[24, 30]]
+    find1 (Synth.ints2int maxDepth $ ESpec info inputs [40, 60, 120]) `shouldBe` [[24, 30]]
 
   it "input/const" $ do
-    find1 (Synth.ints2Int maxDepth $ ESpec info inputs [1, 3, 2]) `shouldBe` [[7, 6]]
+    find1 (Synth.ints2int maxDepth $ ESpec info inputs [1, 3, 2]) `shouldBe` [[7, 6]]
 
   it "input%3" $ do
-    find1 (Synth.ints2Int maxDepth $ ESpec info inputs [1, 1, 2]) `shouldBe` [[0, 1]]
+    find1 (Synth.ints2int maxDepth $ ESpec info inputs [1, 1, 2]) `shouldBe` [[0, 1]]
 
 tests = describe "Test.Oracle.Examples.Synth.Ints2Int" $ do
   testBasic

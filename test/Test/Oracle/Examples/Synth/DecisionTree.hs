@@ -42,7 +42,7 @@ testNaiveBasic = describe "testNaiveBasic" $ do
   let bools     = Features [bs1, bs2]
   let ints      = Features [phi1, phi2, phi3, phi4]
 
-  let synth     = \d labels -> find1 $ Synth.decisionTreeNaive d (Synth.ints2Int 0) $ ESpec info (bools, ints) labels
+  let synth     = \d labels -> find1 $ Synth.decisionTreeNaive d (Synth.ints2int 0) $ ESpec info (bools, ints) labels
 
   it "no-split" $ do
     -- ascending

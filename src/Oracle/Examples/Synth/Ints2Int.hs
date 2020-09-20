@@ -31,8 +31,8 @@ import qualified Oracle.Examples.Synth.Features as Features
 
 import Control.Monad (when, guard)
 
-ints2Int :: (Monad m) => Int -> SynthFn m ESpec (Features Int) Int
-ints2Int maxDepth spec@(ESpec _ xs labels) = synthInt maxDepth spec
+ints2int :: (Monad m) => Int -> SynthFn m ESpec (Features Int) Int
+ints2int maxDepth spec@(ESpec _ xs labels) = synthInt maxDepth spec
   where
     synthInt 0    spec = basecase spec
     synthInt fuel spec = choiceN "synthInt" [
@@ -57,7 +57,7 @@ ints2Int maxDepth spec@(ESpec _ xs labels) = synthInt maxDepth spec
       ("constant", do
           -- TODO: this is unnecessary, but without it, `constant` will be more shallow than `identity`
           -- Possible fixes: heuristics/explicit-costs/scoping
-          _ <- oneOfN "dump-depth" $ [("bump-depth", ())]
+          _ <- oneOfN "bump-depth" $ [("bump-depth", ())]
           Synth.constant spec)
       ]
 
