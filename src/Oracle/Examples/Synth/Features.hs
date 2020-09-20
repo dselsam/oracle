@@ -13,6 +13,7 @@ Features, computed eagerly.
 {-# LANGUAGE StrictData #-}
 module Oracle.Examples.Synth.Features where
 
+import Oracle.Data.Embeddable
 import Oracle.SearchT (NamedChoice)
 import Oracle.Examples.Synth.ISP (ISP)
 import qualified Oracle.Examples.Synth.ISP as ISP
@@ -46,3 +47,8 @@ append efs cs = Features (choices efs ++ cs)
 
 prepend :: Features a -> [NamedChoice (ISP a)] -> Features a
 prepend efs cs = Features (cs ++ choices efs)
+
+instance (HasToEmbeddable a) => HasToEmbeddable (Features a) where
+  toEmbeddable (Features choices) = ERecord "Features" [
+    ("choices", toEmbeddable choices)
+    ]

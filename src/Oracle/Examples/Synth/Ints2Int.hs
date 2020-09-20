@@ -3,7 +3,7 @@ Copyright (c) 2020 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Selsam
 
-Synthesizing simple arithmetic formulae, `[Int] -> Int`.
+Synthesizing simple arithmetic formulae `[Int] -> Int` with deductive backpropagation.
 -}
 
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -31,20 +31,16 @@ import qualified Oracle.Examples.Synth.Features as Features
 
 import Control.Monad (when, guard)
 
-data Ints2IntOptions = Ints2IntOptions {
-  maxDepth :: Int
-  } deriving (Eq, Ord, Show)
-
-ints2Int :: (Monad m) => Ints2IntOptions -> SynthFn m ESpec (Features Int) Int
-ints2Int opts spec@(ESpec _ xs labels) = synthInt (maxDepth opts) spec
+ints2Int :: (Monad m) => Int -> SynthFn m ESpec (Features Int) Int
+ints2Int maxDepth spec@(ESpec _ xs labels) = synthInt maxDepth spec
   where
-    synthInt 0    spec = basecase 0 spec
+    synthInt 0    spec = basecase spec
     synthInt fuel spec = choiceN "synthInt" [
-      ("basecase", basecase fuel spec),
+      ("basecase", basecase spec),
       ("backup",   do
-          x <- oneOfN "arg" $ Features.choices xs
+          x <- oneOfN (snapshot "feature" fuel spec) $ Features.choices xs
           let specWithArg = spec { ESpec.ctx = (x, xs) }
-          (newSpec, reconstruct) <- choiceN "backup" [
+          (newSpec, reconstruct) <- choiceN (snapshot "backup" fuel spec) [
             ("add",  backupAdd  specWithArg),
             ("mul",  backupMul  specWithArg),
             ("div1", backupDiv1 specWithArg),
@@ -54,17 +50,23 @@ ints2Int opts spec@(ESpec _ xs labels) = synthInt (maxDepth opts) spec
           liftO $ reconstruct guesses)
       ]
 
-    basecase fuel spec = choiceN "leaf" [
+    basecase spec = choiceN "leaf" [
       ("identity", do
-          x <- oneOfN "identity" $ Features.choices xs
-          neg <- oneOfN "neg" [("pos", id), ("neg", \x -> -x)]
-          Synth.identity $ spec { ESpec.ctx = (ISP.map neg x) }),
-      ("constant", Synth.constant spec),
-      ("modulo", do
-          x <- oneOfN "identity" $ Features.choices xs
-          k <- oneOfN "modulus" [("2", 2), ("3", 3)]
-          leafModulo k $ spec { ESpec.ctx = x })
+          x <- oneOfN (snapshot "basecase-identity" (0 :: Int) spec) $ Features.choices xs
+          Synth.identity $ spec { ESpec.ctx = x }),
+      ("constant", do
+          -- TODO: this is unnecessary, but without it, `constant` will be more shallow than `identity`
+          -- Possible fixes: heuristics/explicit-costs/scoping
+          _ <- oneOfN "dump-depth" $ [("bump-depth", ())]
+          Synth.constant spec)
       ]
+
+    snapshot name fuel spec = Attrs "ints2int" [
+      ("choice", toEmbeddable name),
+      ("fuel",   toEmbeddable fuel),
+      ("spec",   toEmbeddable spec)
+      ]
+
 
 backupAdd :: (Monad m) => SynthFn1 m ESpec (ISP Int, ctx) Int ESpec ctx Int
 backupAdd spec@(ESpec info (xs, ctx) labels) = do
@@ -103,10 +105,3 @@ backupDiv2 spec@(ESpec info (xs, ctx) labels) = do
     pure  $ x `div` y
   let reconstruct guesses = do { guard (ISP.all (/= 0) guesses); pure $ ISP.map (uncurry div) (ISP.zip xs guesses) }
   pure (ESpec info ctx newLabels, reconstruct)
-
-leafModulo :: (Monad m) => Int -> SynthFn m ESpec (ISP Int) Int
-leafModulo k spec@(ESpec info xs labels) = do
-  -- y = x % k
-  let guesses = ISP.map (flip mod k) xs
-  guard . all (uncurry (==)) $ zip (ISP.train guesses) labels
-  pure guesses

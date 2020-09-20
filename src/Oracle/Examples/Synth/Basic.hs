@@ -13,6 +13,8 @@ module Oracle.Examples.Synth.Basic where
 import Oracle.Data.Embeddable
 import Oracle.SearchT
 
+import Oracle.Examples.Synth.Features (Features(Features))
+
 import Oracle.Examples.Synth.ISP (ISP)
 import qualified Oracle.Examples.Synth.ISP as ISP
 
@@ -75,3 +77,8 @@ lookupTable spec@(ESpec _ inputs labels) = do
   guard . List.allDistinct . map fst . Map.elems $ lookupTableWithCounts
   let lookupTable :: Map a b = Map.map fst lookupTableWithCounts
   liftO $ ISP.mapM (flip Map.lookup lookupTable) inputs
+
+focus :: (Monad m) => SynthFn m ESpec (ISP a) b -> SynthFn m ESpec (Features a) b
+focus synthEx (ESpec info (Features xs) labels) = do
+  x <- oneOfN "focus" xs
+  synthEx $ ESpec info x labels

@@ -9,6 +9,7 @@ Inductive synthesis problems (ISP).
 {-# LANGUAGE ScopedTypeVariables #-}
 module Oracle.Examples.Synth.ISP where
 
+import Oracle.Data.Embeddable
 import Oracle.Examples.Synth.ISPInfo
 import qualified Data.List as List
 import qualified Oracle.Util.List as List
@@ -112,3 +113,13 @@ partitionOn bs xs =
 unpartitionOn :: ISP Bool -> ISP a -> ISP a -> ISP a
 unpartitionOn bs xs ys = ISP (List.unpartitionOn (train bs) (train xs) (train ys))
                              (List.unpartitionOn (test  bs) (test  xs) (test  ys))
+
+partitionInfosOn :: ISP Bool -> (ISPInfo, ISPInfo)
+partitionInfosOn bs = (ISPInfo (length $ filter id (train bs))  (length $ filter id (test bs)),
+                       ISPInfo (length $ filter not (train bs)) (length $ filter not (test bs)))
+
+instance (HasToEmbeddable a) => HasToEmbeddable (ISP a) where
+  toEmbeddable (ISP train test) = ERecord "ISP" [
+    ("train", toEmbeddable train),
+    ("test",  toEmbeddable test)
+    ]

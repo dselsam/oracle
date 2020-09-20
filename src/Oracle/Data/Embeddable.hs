@@ -71,3 +71,8 @@ instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (Map a b) whe
 
 instance (HasToEmbeddable a) => HasToEmbeddable (Grid a) where
   toEmbeddable xs = EGrid (Grid.map (\_ -> toEmbeddable) xs)
+
+data Attrs = Attrs String [(String, Embeddable)]
+
+instance HasToEmbeddable Attrs where
+  toEmbeddable (Attrs n cs) = ERecord n cs
