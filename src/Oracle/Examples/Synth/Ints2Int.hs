@@ -34,9 +34,9 @@ import Control.Monad (when, guard)
 ints2int :: (Monad m) => Int -> SynthFn m ESpec (Features Int) Int
 ints2int maxDepth spec@(ESpec _ xs labels) = synthInt maxDepth spec
   where
-    synthInt 0    spec = basecase spec
-    synthInt fuel spec = choiceN "synthInt" [
-      ("basecase", basecase spec),
+    synthInt 0    spec = basecase (0 :: Int) spec
+    synthInt fuel spec = choiceN (snapshot "synthInt" fuel spec) [
+      ("basecase", basecase fuel spec),
       ("backup",   do
           x <- oneOfN (snapshot "feature" fuel spec) $ Features.choices xs
           let specWithArg = spec { ESpec.ctx = (x, xs) }
@@ -50,9 +50,9 @@ ints2int maxDepth spec@(ESpec _ xs labels) = synthInt maxDepth spec
           liftO $ reconstruct guesses)
       ]
 
-    basecase spec = choiceN "leaf" [
+    basecase fuel spec = choiceN (snapshot "basecase" fuel spec) [
       ("identity", do
-          x <- oneOfN (snapshot "basecase-identity" (0 :: Int) spec) $ Features.choices xs
+          x <- oneOfN (snapshot "basecase-identity" fuel spec) $ Features.choices xs
           Synth.identity $ spec { ESpec.ctx = x }),
       ("constant", do
           -- TODO: this is unnecessary, but without it, `constant` will be more shallow than `identity`

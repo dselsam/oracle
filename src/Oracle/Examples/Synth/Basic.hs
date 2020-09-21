@@ -80,5 +80,6 @@ lookupTable spec@(ESpec _ inputs labels) = do
 
 focus :: (Monad m) => SynthFn m ESpec (ISP a) b -> SynthFn m ESpec (Features a) b
 focus synthEx (ESpec info (Features xs) labels) = do
+  -- TODO: need conventions for snapshots/choices
   x <- oneOfN "focus" xs
   synthEx $ ESpec info x labels

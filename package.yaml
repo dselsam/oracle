@@ -25,6 +25,8 @@ dependencies:
 - vector
 - pqueue
 - random
+- unordered-containers
+- cmdargs
 
 library:
   source-dirs: src

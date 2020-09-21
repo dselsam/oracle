@@ -36,6 +36,7 @@ import qualified Oracle.Util.List as List
 
 import Debug.Trace (traceM)
 import Control.Monad (guard)
+import Control.Monad.Identity (Identity, runIdentity)
 import Control.Monad.Trans (MonadIO)
 import Data.Foldable (foldlM)
 import Data.Map (Map)
@@ -55,13 +56,10 @@ decisionTreeNaive fuel synthLeaf spec
       ("leaf", basecase spec),
       ("node", do
           b <- oneOfN (snapshot "feature" fuel spec) $ Features.choices bs
-          let (infoTrue, infoFalse)     = ISP.partitionInfosOn b
-          guard $ all okInfo [infoTrue, infoFalse]
-          let (bsTrue, bsFalse)         = SynthContext.partitionOn b bs
-          let (ctxTrue, ctxFalse)       = SynthContext.partitionOn b ctx
-          let (labelsTrue, labelsFalse) = List.partitionOn (ISP.train b) labels
-          trueGuesses  <- decisionTreeNaive (fuel-1) synthLeaf $ ESpec infoTrue  (bsTrue,  ctxTrue)  labelsTrue
-          falseGuesses <- decisionTreeNaive (fuel-1) synthLeaf $ ESpec infoFalse (bsFalse, ctxFalse) labelsFalse
+          let (specT, specF) = splitSpec b spec
+          guard $ all okInfo [ESpec.info specT, ESpec.info specF]
+          trueGuesses  <- decisionTreeNaive (fuel-1) synthLeaf specT
+          falseGuesses <- decisionTreeNaive (fuel-1) synthLeaf specF
           pure $ ISP.unpartitionOn b trueGuesses falseGuesses)
       ]
 
@@ -72,3 +70,13 @@ decisionTreeNaive fuel synthLeaf spec
       ]
 
     okInfo (ISPInfo nTrain _) = nTrain > 0
+
+splitSpec :: (SynthContext ctx) => ISP Bool -> ESpec (Features Bool, ctx) b -> (ESpec (Features Bool, ctx) b, ESpec (Features Bool, ctx) b)
+splitSpec b spec = runIdentity $ do
+  let (bools, ctx) = ESpec.ctx spec
+  let (infoTrue, infoFalse)     = ISP.partitionInfosOn b
+  let (boolsTrue, boolsFalse)   = SynthContext.partitionOn b bools
+  let (ctxTrue, ctxFalse)       = SynthContext.partitionOn b ctx
+  let (labelsTrue, labelsFalse) = List.partitionOn (ISP.train b) (ESpec.labels spec)
+  pure (ESpec infoTrue (boolsTrue, ctxTrue) labelsTrue,
+        ESpec infoFalse (boolsFalse, ctxFalse) labelsFalse)

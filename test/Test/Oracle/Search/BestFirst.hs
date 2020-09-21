@@ -10,7 +10,8 @@ module Test.Oracle.Search.BestFirst where
 import Oracle.SearchT
 import Oracle.Search.BestFirst
 import qualified Oracle.Search.Result as Result
-import qualified Oracle.Neural as Neural
+import qualified Oracle.Neural.Oracle as Oracle
+import qualified Oracle.Neural.Result as Neural
 
 import GHC.Exts (toList)
 import Test.Hspec
@@ -21,7 +22,7 @@ search :: Int -> SearchT IO a -> IO [a]
 search maxResults f = do
   let opts = BestFirstOptions maxResults 10000
   let oracle cp = do
-        Neural.Result pi _ <- Neural.queryUniversalOracle cp
+        Neural.Result pi _ <- Oracle.query Oracle.dummy cp
         pure pi
   results <- bestFirstSearch opts oracle f
   pure $ map Result.value (toList results)
