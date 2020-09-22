@@ -10,13 +10,13 @@ Trivial specifications.
 {-# LANGUAGE FlexibleInstances #-}
 module Oracle.Examples.Synth.Specs.TSpec where
 
-import Oracle.Examples.Synth.ISP (ISP(ISP), ForTrain, ForTest)
-import Oracle.Examples.Synth.ISPInfo
-import qualified Oracle.Examples.Synth.ISP as ISP
+import Oracle.Examples.Synth.TTS (TTS(TTS), ForTrain, ForTest)
+import Oracle.Examples.Synth.TTSInfo
+import qualified Oracle.Examples.Synth.TTS as TTS
 import Oracle.Examples.Synth.Specs.Spec
 
 data TSpec ctx a = TSpec {
-  info        :: ISPInfo,
+  info        :: TTSInfo,
   ctx         :: ctx
   } deriving (Show)
 

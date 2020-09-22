@@ -11,14 +11,14 @@ Exact specifications.
 module Oracle.Examples.Synth.Specs.ESpec where
 
 import Oracle.Data.Embeddable
-import Oracle.Examples.Synth.ISP (ISP(ISP), ForTrain, ForTest)
-import Oracle.Examples.Synth.ISPInfo
-import qualified Oracle.Examples.Synth.ISP as ISP
+import Oracle.Examples.Synth.TTS (TTS(TTS), ForTrain, ForTest)
+import Oracle.Examples.Synth.TTSInfo
+import qualified Oracle.Examples.Synth.TTS as TTS
 import Oracle.Examples.Synth.Specs.Spec
-import qualified Oracle.Examples.Synth.ISPInfo as ISPInfo
+import qualified Oracle.Examples.Synth.TTSInfo as TTSInfo
 
 data ESpec ctx a = ESpec {
-  info   :: ISPInfo,
+  info   :: TTSInfo,
   ctx    :: ctx,
   labels :: ForTrain a
   } deriving (Eq, Ord, Show)
@@ -26,7 +26,7 @@ data ESpec ctx a = ESpec {
 instance (Eq a) => Spec ESpec ctx a where
   info  (ESpec info   _      _     )         = info
   ctx   (ESpec _      inputs _     )         = inputs
-  check (ESpec _      _      labels) guesses = labels == ISP.train guesses
+  check (ESpec _      _      labels) guesses = labels == TTS.train guesses
 
 instance (HasToEmbeddable ctx, HasToEmbeddable a) => HasToEmbeddable (ESpec ctx a) where
   toEmbeddable (ESpec info ctx labels) = ERecord "ESpec" [

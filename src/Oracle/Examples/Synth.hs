@@ -7,16 +7,16 @@ Simple inductive synthesis library.
 -}
 
 module Oracle.Examples.Synth (
-  ISPInfo(ISPInfo),
-  ISP(ISP), ForTrain, ForTest,
+  TTSInfo(TTSInfo),
+  TTS(TTS), ForTrain, ForTest,
   SynthContext,
   Features(Features),
   Spec,
   ESpec(ESpec)
   ) where
 
-import Oracle.Examples.Synth.ISPInfo (ISPInfo(ISPInfo))
-import Oracle.Examples.Synth.ISP (ISP(ISP), ForTrain, ForTest)
+import Oracle.Examples.Synth.TTSInfo (TTSInfo(TTSInfo))
+import Oracle.Examples.Synth.TTS (TTS(TTS), ForTrain, ForTest)
 import Oracle.Examples.Synth.SynthContext (SynthContext)
 import Oracle.Examples.Synth.Features (Features(Features))
 import Oracle.Examples.Synth.Specs.Spec (Spec)

@@ -24,8 +24,8 @@ import qualified Oracle.Search.Replay as Search
 
 import Oracle.Examples.Synth
 import qualified Oracle.Examples.Synth.Features as Features
-import qualified Oracle.Examples.Synth.ISPInfo as ISPInfo
-import qualified Oracle.Examples.Synth.ISP as ISP
+import qualified Oracle.Examples.Synth.TTSInfo as TTSInfo
+import qualified Oracle.Examples.Synth.TTS as TTS
 import qualified Oracle.Examples.Synth.Specs.ESpec as ESpec
 import qualified Oracle.Examples.Synth.Basic as Synth
 import qualified Oracle.Examples.Synth.Ints2Int as Synth
@@ -83,7 +83,7 @@ sampleBool :: IO Bool
 sampleBool = getStdRandom $ randomR (False, True)
 
 data FeaturesSpec = FeaturesSpec {
-  _info   :: ISPInfo,
+  _info   :: TTSInfo,
   _nBools :: Int,
   _nInts  :: Int
   }
@@ -91,15 +91,15 @@ data FeaturesSpec = FeaturesSpec {
 type Inputs = (Features Bool, Features Int)
 
 sampleFeatures :: FeaturesSpec -> IO Inputs
-sampleFeatures (FeaturesSpec (ISPInfo nTrain nTest) nBools nInts) = do
+sampleFeatures (FeaturesSpec (TTSInfo nTrain nTest) nBools nInts) = do
   bools <- flip mapM [1..nBools] $ \i -> do
     train <- replicateM nTrain sampleBool
     test  <- replicateM nTest sampleBool
-    pure ("bool" ++ show i, ISP train test)
+    pure ("bool" ++ show i, TTS train test)
   ints <- flip mapM [1..nInts] $ \i -> do
     train <- replicateM nTrain $ sampleInt 1 10
     test  <- replicateM nTest $ sampleInt 1 10
-    pure ("int" ++ show i, ISP train test)
+    pure ("int" ++ show i, TTS train test)
   pure (Features bools, Features ints)
 
 type FeatureIdx = Int
@@ -144,28 +144,28 @@ mkArithProgs maxResults nIntFeatures = runIdentity $ do
     chooseConst :: SearchT Identity Int
     chooseConst = oneOf "" [1..11]
 
-evalArithProg :: Features Int -> ArithProg -> Maybe (ISP Int)
+evalArithProg :: Features Int -> ArithProg -> Maybe (TTS Int)
 evalArithProg ints prog = case prog of
-  ArithId i    -> pure $ Features.getISP i ints
-  ArithConst k -> pure $ ISP.replicate (Features.getInfo ints) k
+  ArithId i    -> pure $ Features.getTTS i ints
+  ArithConst k -> pure $ TTS.replicate (Features.getInfo ints) k
   Add i prog -> do
-    let x = Features.getISP i ints
+    let x = Features.getTTS i ints
     y <- evalArithProg ints prog
-    pure $ fmap (\(x, y) -> x + y) (ISP.zip x y)
+    pure $ fmap (\(x, y) -> x + y) (TTS.zip x y)
   Mul i prog -> do
-    let x = Features.getISP i ints
+    let x = Features.getTTS i ints
     y <- evalArithProg ints prog
-    pure $ fmap (\(x, y) -> x * y) (ISP.zip x y)
+    pure $ fmap (\(x, y) -> x * y) (TTS.zip x y)
   Div1 i prog -> do
-    let x = Features.getISP i ints
+    let x = Features.getTTS i ints
     y <- evalArithProg ints prog
-    guard $ all (/= 0) y && all ((==0) . uncurry mod) (ISP.zip x y)
-    pure $ fmap (\(x, y) -> div x y) (ISP.zip x y)
+    guard $ all (/= 0) y && all ((==0) . uncurry mod) (TTS.zip x y)
+    pure $ fmap (\(x, y) -> div x y) (TTS.zip x y)
   Div2 i prog -> do
     x <- evalArithProg ints prog
-    let y = Features.getISP i ints
-    guard $ all (/= 0) y && all ((==0) . uncurry mod) (ISP.zip x y)
-    pure $ fmap (\(x, y) -> div x y) (ISP.zip x y)
+    let y = Features.getTTS i ints
+    guard $ all (/= 0) y && all ((==0) . uncurry mod) (TTS.zip x y)
+    pure $ fmap (\(x, y) -> div x y) (TTS.zip x y)
 
 -- TODO: error-prone labeling, missing abstractions
 labelArithProg :: ArithProg -> Features Int -> State (Seq Int) ()
@@ -203,21 +203,21 @@ mkDTrees maxResults nBoolFeatures nIntFeatures = runIdentity $ do
 
     arithProgs = mkArithProgs (div maxResults 100) nIntFeatures
 
-evalDTree :: Inputs -> DTree -> Maybe (ISP Int)
+evalDTree :: Inputs -> DTree -> Maybe (TTS Int)
 evalDTree (bools, ints) dtree = guard (not . Features.isEmpty $ bools) *> case dtree of
   Leaf prog -> evalArithProg ints prog
   Node i dtreeT dtreeF -> do
-    let b = Features.getISP i bools
-    let (infoTrue, infoFalse) = ISP.partitionInfosOn b
+    let b = Features.getTTS i bools
+    let (infoTrue, infoFalse) = TTS.partitionInfosOn b
     guard $ all okInfo [infoTrue, infoFalse]
     let (boolsTrue, boolsFalse) = SynthContext.partitionOn b bools
     let (intsTrue,  intsFalse ) = SynthContext.partitionOn b ints
     trueGuesses  <- evalDTree (boolsTrue,  intsTrue) dtreeT
     falseGuesses <- evalDTree (boolsFalse, intsFalse) dtreeF
-    pure $ ISP.unpartitionOn b trueGuesses falseGuesses
+    pure $ TTS.unpartitionOn b trueGuesses falseGuesses
 
   where
-    okInfo (ISPInfo nTrain _) = nTrain > 0
+    okInfo (TTSInfo nTrain _) = nTrain > 0
 
 
 labelDTree :: DTree -> Inputs -> State (Seq Int) ()
@@ -231,7 +231,7 @@ labelDTree dtree0 inputs0 = core dtree0 spec0 where
     Node i dtreeT dtreeF -> do
       modify (|> 1)
       modify (|> i)
-      let (specT, specF) = DTree.splitSpec (Features.getISP i (fst $ ESpec.ctx spec)) spec
+      let (specT, specF) = DTree.splitSpec (Features.getTTS i (fst $ ESpec.ctx spec)) spec
       core dtreeT specT
       core dtreeF specF
 
@@ -240,24 +240,24 @@ labelDTree dtree0 inputs0 = core dtree0 spec0 where
 
   -- Not actually using labels, just convenient to get splitSpec
   labels0 = case evalDTree inputs0 dtree0 of
-    Just outputs0 -> ISP.train outputs0
+    Just outputs0 -> TTS.train outputs0
 
 main :: IO ()
 main = do
   putStrLn "[synth-exe]"
   args <- cmdArgs defaultArgs
-  let info = ISPInfo (nTrain args) (nTest args)
+  let info = TTSInfo (nTrain args) (nTest args)
 
   (bools, ints) <- sampleFeatures (FeaturesSpec info (nBoolFeatures args) (nIntFeatures args))
   let dtrees   = toList $ mkDTrees (nDTrees args) (nBoolFeatures args) (nIntFeatures args)
   let dOutputs = map (evalDTree (bools, ints)) dtrees
   let choicess = flip map dtrees $ \dtree -> toList $ flip execState Seq.empty $ labelDTree dtree (bools, ints)
 
-  (dtreesChoices, dOutputs) <- pure . unzip . List.stableUniqKey (ISP.train . fromJust . snd) . filter (isJust . snd) $ zip (zip dtrees choicess) dOutputs
+  (dtreesChoices, dOutputs) <- pure . unzip . List.stableUniqKey (TTS.train . fromJust . snd) . filter (isJust . snd) $ zip (zip dtrees choicess) dOutputs
   let (dtrees, choicess) = unzip dtreesChoices
 
   for_ (List.zip4 [1..] dtrees choicess dOutputs) $ \(i, dtree, choices, dOutput) -> do
-    let spec  = ESpec info (bools, ints) (ISP.train $ fromJust dOutput)
+    let spec  = ESpec info (bools, ints) (TTS.train $ fromJust dOutput)
     let answer = runIdentity $ Search.replay (Synth.decisionTreeNaive (synthFuel args) (Synth.ints2int $ synthFuel args) spec) choices
 
     for_ answer $ \(Decision snapshot choices choiceIdx _) -> do

@@ -19,11 +19,11 @@ import qualified Oracle.Examples.Synth.Features as Features
 import Oracle.Examples.Synth.SynthContext (SynthContext)
 import qualified Oracle.Examples.Synth.SynthContext as SynthContext
 
-import Oracle.Examples.Synth.ISPInfo (ISPInfo(ISPInfo))
-import qualified Oracle.Examples.Synth.ISPInfo as ISPInfo
+import Oracle.Examples.Synth.TTSInfo (TTSInfo(TTSInfo))
+import qualified Oracle.Examples.Synth.TTSInfo as TTSInfo
 
-import Oracle.Examples.Synth.ISP (ISP(ISP))
-import qualified Oracle.Examples.Synth.ISP as ISP
+import Oracle.Examples.Synth.TTS (TTS(TTS))
+import qualified Oracle.Examples.Synth.TTS as TTS
 
 import Oracle.Examples.Synth.Specs.Spec (Spec, SynthFn)
 import qualified Oracle.Examples.Synth.Specs.Spec as Spec
@@ -49,7 +49,7 @@ decisionTreeNaive fuel synthLeaf spec
 
   where
     basecase (ESpec info (_, ctx) labels)
-      | ISPInfo.isEmpty info = deadend ""
+      | TTSInfo.isEmpty info = deadend ""
       | otherwise            = synthLeaf $ spec { ESpec.ctx = ctx }
 
     core fuel spec@(ESpec info (bs, ctx) labels) = choiceN (snapshot "leafVsNode" fuel spec) $ [
@@ -60,7 +60,7 @@ decisionTreeNaive fuel synthLeaf spec
           guard $ all okInfo [ESpec.info specT, ESpec.info specF]
           trueGuesses  <- decisionTreeNaive (fuel-1) synthLeaf specT
           falseGuesses <- decisionTreeNaive (fuel-1) synthLeaf specF
-          pure $ ISP.unpartitionOn b trueGuesses falseGuesses)
+          pure $ TTS.unpartitionOn b trueGuesses falseGuesses)
       ]
 
     snapshot name fuel spec = Attrs "decisionTreeNaive" [
@@ -69,14 +69,14 @@ decisionTreeNaive fuel synthLeaf spec
       ("spec",   toEmbeddable spec)
       ]
 
-    okInfo (ISPInfo nTrain _) = nTrain > 0
+    okInfo (TTSInfo nTrain _) = nTrain > 0
 
-splitSpec :: (SynthContext ctx) => ISP Bool -> ESpec (Features Bool, ctx) b -> (ESpec (Features Bool, ctx) b, ESpec (Features Bool, ctx) b)
+splitSpec :: (SynthContext ctx) => TTS Bool -> ESpec (Features Bool, ctx) b -> (ESpec (Features Bool, ctx) b, ESpec (Features Bool, ctx) b)
 splitSpec b spec = runIdentity $ do
   let (bools, ctx) = ESpec.ctx spec
-  let (infoTrue, infoFalse)     = ISP.partitionInfosOn b
+  let (infoTrue, infoFalse)     = TTS.partitionInfosOn b
   let (boolsTrue, boolsFalse)   = SynthContext.partitionOn b bools
   let (ctxTrue, ctxFalse)       = SynthContext.partitionOn b ctx
-  let (labelsTrue, labelsFalse) = List.partitionOn (ISP.train b) (ESpec.labels spec)
+  let (labelsTrue, labelsFalse) = List.partitionOn (TTS.train b) (ESpec.labels spec)
   pure (ESpec infoTrue (boolsTrue, ctxTrue) labelsTrue,
         ESpec infoFalse (boolsFalse, ctxFalse) labelsFalse)

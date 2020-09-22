@@ -15,8 +15,8 @@ module Oracle.Examples.Synth.Ints2Int where
 import Oracle.Data.Embeddable
 import Oracle.SearchT
 
-import Oracle.Examples.Synth.ISP (ISP, ForTrain, ForTest)
-import qualified Oracle.Examples.Synth.ISP as ISP
+import Oracle.Examples.Synth.TTS (TTS, ForTrain, ForTest)
+import qualified Oracle.Examples.Synth.TTS as TTS
 
 import Oracle.Examples.Synth.Specs.Spec (Spec, SynthFn, SynthFn1)
 import qualified Oracle.Examples.Synth.Specs.Spec as Spec
@@ -68,40 +68,40 @@ ints2int maxDepth spec@(ESpec _ xs labels) = synthInt maxDepth spec
       ]
 
 
-backupAdd :: (Monad m) => SynthFn1 m ESpec (ISP Int, ctx) Int ESpec ctx Int
+backupAdd :: (Monad m) => SynthFn1 m ESpec (TTS Int, ctx) Int ESpec ctx Int
 backupAdd spec@(ESpec info (xs, ctx) labels) = do
   -- y = x + ?k
-  let newLabels :: ForTrain Int = map (\(x, y) -> y - x) (zip (ISP.train xs) labels)
-  let reconstruct guesses = pure $ ISP.map (uncurry (+)) (ISP.zip xs guesses)
+  let newLabels :: ForTrain Int = map (\(x, y) -> y - x) (zip (TTS.train xs) labels)
+  let reconstruct guesses = pure $ TTS.map (uncurry (+)) (TTS.zip xs guesses)
   pure (ESpec info ctx newLabels, reconstruct)
 
-backupMul :: (Monad m) => SynthFn1 m ESpec (ISP Int, ctx) Int ESpec ctx Int
+backupMul :: (Monad m) => SynthFn1 m ESpec (TTS Int, ctx) Int ESpec ctx Int
 backupMul spec@(ESpec info (xs, ctx) labels) = do
   -- y = x * ?k
-  newLabels :: ForTrain Int <- flip mapM (zip (ISP.train xs) labels) $ \(x, y) -> do
+  newLabels :: ForTrain Int <- flip mapM (zip (TTS.train xs) labels) $ \(x, y) -> do
     guard $ x /= 0
     guard $ y `rem` x == 0
     pure $ y `div` x
-  guard . all (/=0) $ ISP.test xs
-  let reconstruct guesses = pure $ ISP.map (uncurry (*)) (ISP.zip xs guesses)
+  guard . all (/=0) $ TTS.test xs
+  let reconstruct guesses = pure $ TTS.map (uncurry (*)) (TTS.zip xs guesses)
   pure (ESpec info ctx newLabels, reconstruct)
 
-backupDiv1 :: (Monad m) => SynthFn1 m ESpec (ISP Int, ctx) Int ESpec ctx Int
+backupDiv1 :: (Monad m) => SynthFn1 m ESpec (TTS Int, ctx) Int ESpec ctx Int
 backupDiv1 spec@(ESpec info (xs, ctx) labels) = do
   -- y = ?k / x
-  newLabels :: ForTrain Int <- flip mapM (zip (ISP.train xs) labels) $ \(x, y) -> do
+  newLabels :: ForTrain Int <- flip mapM (zip (TTS.train xs) labels) $ \(x, y) -> do
     guard $ x /= 0
     pure  $ x * y
-  guard . all (/= 0) $ ISP.test xs
-  let reconstruct guesses = pure $ ISP.map (uncurry div) (ISP.zip guesses xs)
+  guard . all (/= 0) $ TTS.test xs
+  let reconstruct guesses = pure $ TTS.map (uncurry div) (TTS.zip guesses xs)
   pure (ESpec info ctx newLabels, reconstruct)
 
-backupDiv2 :: (Monad m) => SynthFn1 m ESpec (ISP Int, ctx) Int ESpec ctx Int
+backupDiv2 :: (Monad m) => SynthFn1 m ESpec (TTS Int, ctx) Int ESpec ctx Int
 backupDiv2 spec@(ESpec info (xs, ctx) labels) = do
   -- y = x / ?k
-  newLabels :: ForTrain Int <- flip mapM (zip (ISP.train xs) labels) $ \(x, y) -> do
+  newLabels :: ForTrain Int <- flip mapM (zip (TTS.train xs) labels) $ \(x, y) -> do
     guard $ y /= 0
     guard $ x `rem` y == 0
     pure  $ x `div` y
-  let reconstruct guesses = do { guard (ISP.all (/= 0) guesses); pure $ ISP.map (uncurry div) (ISP.zip xs guesses) }
+  let reconstruct guesses = do { guard (TTS.all (/= 0) guesses); pure $ TTS.map (uncurry div) (TTS.zip xs guesses) }
   pure (ESpec info ctx newLabels, reconstruct)

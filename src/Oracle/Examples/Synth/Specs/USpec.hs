@@ -11,18 +11,18 @@ each set of inputs, so that |countDistinct(guesses)==1| for every input.
 {-# LANGUAGE FlexibleInstances #-}
 module Oracle.Examples.Synth.Specs.USpec where
 
-import Oracle.Examples.Synth.ISP (ISP(ISP), ForTrain, ForTest)
-import Oracle.Examples.Synth.ISPInfo
-import qualified Oracle.Examples.Synth.ISP as ISP
+import Oracle.Examples.Synth.TTS (TTS(TTS), ForTrain, ForTest)
+import Oracle.Examples.Synth.TTSInfo
+import qualified Oracle.Examples.Synth.TTS as TTS
 import Oracle.Examples.Synth.Specs.Spec
 import qualified Oracle.Util.List as List
 
 data USpec ctx a = USpec {
-  info        :: ISPInfo,
+  info        :: TTSInfo,
   ctx         :: ctx
   } deriving (Show)
 
 instance (Eq a, Ord a) => Spec USpec ctx [a] where
   info  (USpec info   _     )         = info
   ctx   (USpec _      inputs)         = inputs
-  check (USpec _      _     ) guesses = ISP.all ((==1) . List.countDistinct id) guesses
+  check (USpec _      _     ) guesses = TTS.all ((==1) . List.countDistinct id) guesses
