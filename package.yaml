@@ -27,6 +27,7 @@ dependencies:
 - random
 - unordered-containers
 - cmdargs
+- extra
 
 library:
   source-dirs: src
