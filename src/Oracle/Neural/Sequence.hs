@@ -25,7 +25,7 @@ embed x = case x of
   EBool b           -> Seq.singleton (show b)
   EInt k            -> embedInt k
   EString s         -> Seq.singleton s
-  EPair (x, y)      -> Seq.fromList ["(", "Prod.mk"] >< embed x >< Seq.singleton "," >< embed y >< Seq.singleton "]"
+  EPair (x, y)      -> Seq.fromList ["(", "Prod.mk"] >< embed x >< Seq.singleton "," >< embed y >< Seq.singleton ")"
   EList xs          -> foldl (\tokens x -> tokens >< embed x >< Seq.singleton ",") (Seq.singleton "[") xs |> "]"
   ESeq xs           -> foldl (\tokens x -> tokens >< embed x >< Seq.singleton ",") (Seq.fromList ["(", "Seq.mk"]) xs |> ")"
   ERecord n fields  -> foldl (\tokens (n, s) -> tokens >< embedField n s) (Seq.fromList ["(", "Record.mk", n]) fields |> ")"
