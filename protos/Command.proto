@@ -6,16 +6,16 @@ message TrainCommand {
     string  data_filename = 1;
     int32   max_epochs = 2;
     int32   batch_size = 3;
-    float learning_rate = 4;
-    float beta_1 = 5;
-    float beta_2 = 6;
-    float grad_norm_clip = 7;
-    float weight_decay = 8;
+    float   learning_rate = 4;
+    float   beta_1 = 5;
+    float   beta_2 = 6;
+    float   grad_norm_clip = 7;
+    float   weight_decay = 8;
     bool    lr_decay = 9;
 }
 
 message PredictCommand {
-    ChoicePoint choice_point = 1;
+    ChoicePoint choicepoint = 1;
 }
 
 message LoadWeightsCommand {
