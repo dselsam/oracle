@@ -1,0 +1,8 @@
+syntax="proto3";
+import "protos/ChoicePoint.proto";
+import "protos/Result.proto";
+
+message DataPoint {
+    ChoicePoint choice_point = 1;
+    Result result = 2;
+}

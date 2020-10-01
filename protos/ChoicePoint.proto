@@ -1,0 +1,7 @@
+syntax="proto3";
+import "protos/Embeddable.proto";
+
+message ChoicePoint {
+    Embeddable snapshot = 1;
+    repeated Embeddable choices = 2;
+}

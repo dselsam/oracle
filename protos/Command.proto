@@ -1,0 +1,42 @@
+syntax="proto3";
+import "protos/ChoicePoint.proto";
+import "protos/DataPoint.proto";
+
+message TrainCommand {
+    string  data_filename = 1;
+    int32   max_epochs = 2;
+    int32   batch_size = 3;
+    float learning_rate = 4;
+    float beta_1 = 5;
+    float beta_2 = 6;
+    float grad_norm_clip = 7;
+    float weight_decay = 8;
+    bool    lr_decay = 9;
+}
+
+message PredictCommand {
+    ChoicePoint choice_point = 1;
+}
+
+message LoadWeightsCommand {
+    string filename = 1;
+}
+
+message SaveWeightsCommand {
+    string filename = 1;
+}
+
+message AddReplayCommand {
+    string data_filename = 1;
+    repeated DataPoint datapoints = 2;
+}
+
+message Command {
+    oneof body {
+        TrainCommand       train = 1;
+        PredictCommand     predict = 2;
+        AddReplayCommand   add_replay = 3;
+        SaveWeightsCommand save_weights = 4;
+        LoadWeightsCommand load_weights = 5;
+    }
+}

@@ -31,6 +31,8 @@ dependencies:
 - network-simple
 - bytestring
 - utf8-string
+- proto-lens
+- proto-lens-runtime
 
 library:
   source-dirs: src

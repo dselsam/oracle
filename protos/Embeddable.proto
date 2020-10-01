@@ -1,0 +1,30 @@
+syntax="proto3";
+
+message Embeddable {
+    message Grid {
+        int32 nRows = 1;
+        int32 nCols = 2;
+        repeated Embeddable children = 3;
+    }
+
+    message Graph {
+        message Edge {
+            int32 src = 1;
+            int32 dst = 2;
+        }
+        int32 nNodes = 1;
+        repeated Edge edges = 2;
+        repeated Embeddable children = 3;
+
+    }
+
+    message Seq {
+        repeated string tokens = 1;
+    }
+
+    oneof body {
+        Grid grid = 1;
+        Graph graph = 2;
+        Seq seq = 3;
+    }
+}
