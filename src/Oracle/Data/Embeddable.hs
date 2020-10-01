@@ -11,6 +11,8 @@ For now, we commit to an abstract representation of things that can be embedded,
 
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Oracle.Data.Embeddable where
 
 import Oracle.Data.Grid (Grid)
@@ -23,6 +25,22 @@ import qualified Data.Set as Set
 
 import Data.Map (Map)
 import qualified Data.Map as Map
+
+import qualified Data.Vector as Vector
+
+import Data.ProtoLens (defMessage)
+import Data.ProtoLens.Labels ()
+import Lens.Micro
+import Lens.Micro.Extras (view)
+import qualified Proto.Protos.Embeddable as P
+import qualified Proto.Protos.ChoicePoint as P
+import qualified Proto.Protos.Result as P
+import qualified Proto.Protos.DataPoint as P
+
+import GHC.Exts (toList)
+import qualified Data.Text as Text
+import Oracle.Data.Grid.Grid (Grid(Grid))
+import Oracle.Data.Grid.Dims (Dims(Dims))
 
 data Embeddable =
   EUnit ()
@@ -76,3 +94,20 @@ data Attrs = Attrs String [(String, Embeddable)]
 
 instance HasToEmbeddable Attrs where
   toEmbeddable (Attrs n cs) = ERecord n cs
+
+toProto :: Embeddable -> P.Embeddable
+toProto x = case x of
+  EBool b           -> defMessage & #b .~ b
+  EInt n            -> defMessage & #n .~ fromIntegral n
+  EString s         -> defMessage & #s .~ Text.pack s
+  EPair p           -> defMessage & #pair .~ pair2proto p
+  EList xs          -> defMessage & #list .~ (defMessage & #elems .~ map toProto xs)
+  ESeq xs           -> defMessage & #array .~ (defMessage & #elems .~ (toList $ fmap toProto xs))
+  ESet s            -> defMessage & #set .~ (defMessage & #elems .~ (map toProto $ Set.toList s))
+  EMap assocs       -> defMessage & #map .~ (defMessage & #assocs .~ (map pair2proto assocs))
+  EGrid g           -> defMessage & #grid .~ grid2proto g
+  ERecord n fields  -> defMessage & #record .~ (defMessage & #name .~ Text.pack n & #fields .~ (flip map fields $ \(k, v) -> defMessage & #name .~ Text.pack k & #value .~ toProto v))
+
+  where
+    pair2proto (x, y) = defMessage & #fst .~ toProto x & #snd .~ toProto y
+    grid2proto (Grid (Dims nRows nCols) elems) = defMessage & #nRows .~ fromIntegral nRows & #nCols .~ fromIntegral nCols & #elems .~ Vector.toList (fmap toProto elems)

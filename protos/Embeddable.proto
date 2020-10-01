@@ -1,10 +1,31 @@
 syntax="proto3";
 
 message Embeddable {
+    message Pair {
+        Embeddable fst = 1;
+        Embeddable snd = 2;
+    }
+
+    message List {
+        repeated Embeddable elems = 1;
+    }
+
+    message Array {
+        repeated Embeddable elems = 1;
+    }
+
+    message Set {
+        repeated Embeddable elems = 1;
+    }
+
+    message Map {
+        repeated Pair assocs = 1;
+    }
+
     message Grid {
         int32 nRows = 1;
         int32 nCols = 2;
-        repeated Embeddable children = 3;
+        repeated Embeddable elems = 3;
     }
 
     message Graph {
@@ -14,17 +35,30 @@ message Embeddable {
         }
         int32 nNodes = 1;
         repeated Edge edges = 2;
-        repeated Embeddable children = 3;
-
+        repeated Embeddable elems = 3;
     }
 
-    message Seq {
-        repeated string tokens = 1;
+    message Record {
+        message Field {
+            string     name = 1;
+            Embeddable value = 2;
+        }
+
+        string name = 1;
+        repeated Field fields = 2;
     }
 
     oneof body {
-        Grid grid = 1;
-        Graph graph = 2;
-        Seq seq = 3;
+        bool    b      = 1;
+        int32   n      = 2;
+        string  s      = 3;
+        Pair    pair   = 4;
+        List    list   = 5;
+        Array   array  = 6;
+        Set     set    = 7;
+        Map     map    = 8;
+        Grid    grid   = 9;
+        Graph   graph  = 10;
+        Record  record = 11;
     }
 }

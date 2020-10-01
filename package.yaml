@@ -33,6 +33,8 @@ dependencies:
 - utf8-string
 - proto-lens
 - proto-lens-runtime
+- microlens
+- text
 
 library:
   source-dirs: src
