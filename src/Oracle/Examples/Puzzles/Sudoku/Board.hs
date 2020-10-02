@@ -11,16 +11,16 @@ module Oracle.Examples.Puzzles.Sudoku.Board where
 
 import Oracle.Data.Embeddable
 
-import Oracle.Data.Grid (Grid(Grid), Index(Index))
+import Oracle.Data.Grid (Grid(Grid), Index(Index), Dims(Dims))
 import qualified Oracle.Data.Grid.Grid as Grid
 import qualified Oracle.Data.Grid.Index as Index
 
 import Data.Set (Set)
 import qualified Data.Set as Set
 
-import Control.Monad (guard, when)
+import Control.Monad (guard, when, unless)
 import Control.Applicative (Alternative)
-import Control.Monad.State (MonadState, get, gets, modify)
+import Control.Monad.State (MonadState, get, gets, modify, execState)
 import Control.Monad.Reader (MonadReader, ask, asks)
 import Data.Foldable (for_)
 
@@ -31,18 +31,26 @@ instance HasToEmbeddable Value where
 
 data Board = Board {
   grid   :: Grid Value,
-  empty  :: Set Index
+  emptys :: Set Index
   } deriving (Show)
 
-instance HasToEmbeddable Board where
-  toEmbeddable (Board grid empty) = ERecord "sudoku board" [
-    ("grid",   toEmbeddable grid),
-    ("empty",  toEmbeddable empty),
-    ("nEmpty", toEmbeddable (Set.size empty))
-    ]
+empty :: Board
+empty = Board {
+  grid   = Grid.empty (Dims 9 9) (Value 0),
+  emptys = Set.fromList $ map (uncurry Index) (zip [0..8] [0..8])
+  }
+
+-- TODO: could be much faster
+fromStringOfInts :: String -> Board
+fromStringOfInts s = flip execState empty $ for_ (zip [0..] s) $ \(i, c) -> do
+  let idx = Index (div i 9) (mod i 9)
+  let x = (read [c] :: Int)
+  unless (x >= 0 && x < 10) $ error $ "[fromStringOfInts]: unexpected " ++ show x
+  when (x > 0) $ do
+    modify $ \b -> b { grid = Grid.set idx (Value x) (grid b), emptys = Set.delete idx (emptys b) }
 
 isFilled :: (MonadState Board m) => m Bool
-isFilled = gets $ Set.null . empty
+isFilled = gets $ Set.null . emptys
 
 -- TODO: awkward to have reader/state versions separate
 readIdx :: (MonadReader Board m) => Index -> m Value
@@ -79,7 +87,7 @@ set idx x = do
   Value y <- lookupIdx idx
   when (y > 0) $ fail "position already occupied"
   check idx x
-  modify $ \b -> b { grid = Grid.set idx x (grid b), empty = Set.delete idx (empty b) }
+  modify $ \b -> b { grid = Grid.set idx x (grid b), emptys = Set.delete idx (emptys b) }
 
 check :: (MonadState Board m, Alternative m) => Index -> Value -> m ()
 check idx@(Index r c) x = do
@@ -88,3 +96,10 @@ check idx@(Index r c) x = do
     lookupIdx (Index r k) >>= \yc -> guard (yc /= x)
     lookupIdx (Index k c) >>= \yr -> guard (yr /= x)
     lookupSubgridIdx (sg { inner = Index (div k 3) (mod k 3) }) >>= \ys -> guard (ys /= x)
+
+instance HasToEmbeddable Board where
+  toEmbeddable (Board grid emptys) = ERecord "sudoku board" [
+    ("grid",    toEmbeddable grid),
+    ("emptys",  toEmbeddable emptys),
+    ("nEmptys", toEmbeddable (Set.size emptys))
+    ]

@@ -56,8 +56,8 @@ selectOIV = do
 
 selectEmpty :: SolveM ()
 selectEmpty = do
-  empty <- gets Board.empty
-  idx   <- select "index" (Set.toList empty)
+  emptys <- gets Board.emptys
+  idx   <- select "index" (Set.toList emptys)
   x     <- select "val" $ map Value [1..9]
   Board.set idx x
 

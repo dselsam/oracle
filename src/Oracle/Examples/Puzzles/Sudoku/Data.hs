@@ -23,6 +23,7 @@ import qualified Oracle.Examples.Puzzles.Sudoku.Board as Board
 
 import Oracle.Examples.Puzzles.Sudoku.Solve (SolveM, solve, selectRCV, selectVRC, selectOIV, selectEmpty)
 
+import Control.Monad.Trans (liftIO)
 import Control.Monad.Reader (ReaderT, runReaderT, ask, asks)
 import Control.Monad.State (StateT, evalStateT, execStateT, runStateT, get, gets, put, modify)
 import Control.Monad.Identity (Identity, runIdentity)
@@ -30,7 +31,10 @@ import Control.Monad.Random.Class (getRandomR)
 
 import qualified Data.Set as Set
 
-type GenM = ReaderT Board (StateT Board IO)
+data BoardPair = BoardPair {
+  start :: Board,
+  end   :: Board
+  }
 
 data SearchPair = SearchPair {
   fselect :: SolveM (),
@@ -45,8 +49,10 @@ searchPairs = [
   SearchPair selectEmpty genStepEmpty
   ]
 
-genData :: Board -> Board -> SearchPair -> IO [Decision]
-genData start end (SearchPair fselect fgen) = do
+type GenM = ReaderT Board (StateT Board IO)
+
+genData :: BoardPair -> SearchPair -> IO [Decision]
+genData (BoardPair start end) (SearchPair fselect fgen) = do
   choiceIdxs <- evalStateT (runReaderT (gen fgen) end) start
   pure . runIdentity $ replay (execStateT (solve fselect) start) choiceIdxs
 
@@ -55,8 +61,11 @@ gen f = Board.isFilled >>= \case
   True   -> pure []
   False  -> do
     current  <- get
-    i        <- getRandomR (0, Set.size (Board.empty current) - 1)
-    choices  <- f $ Set.elemAt i (Board.empty current)
+    i        <- getRandomR (0, Set.size (Board.emptys current) - 1)
+    let idx = Set.elemAt i (Board.emptys current)
+    choices  <- f idx
+    v        <- Board.readIdx idx
+    Board.set idx v
     rest     <- gen f
     pure $ choices ++ rest
 
@@ -78,7 +87,7 @@ genStepOIV idx = do
 
 genStepEmpty :: Index -> GenM [Int]
 genStepEmpty idx = do
-  empty <- gets Board.empty
-  let i = Set.findIndex idx empty
+  emptys <- gets Board.emptys
+  let i = Set.findIndex idx emptys
   Value x <- Board.readIdx idx
   pure [i, x - 1]

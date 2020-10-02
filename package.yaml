@@ -36,6 +36,7 @@ dependencies:
 - microlens
 - text
 - MonadRandom
+- split
 
 library:
   source-dirs: src
@@ -54,6 +55,16 @@ executables:
   synth-exe:
     main:                Main.hs
     source-dirs:         app/synth
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - oracle
+
+  sudoku:
+    main:                Main.hs
+    source-dirs:         app/sudoku
     ghc-options:
     - -threaded
     - -rtsopts
