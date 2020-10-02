@@ -4,7 +4,7 @@
 module Main where
 
 import Oracle.Data.Embeddable
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 import Oracle.Neural
 
 import Data.ByteString.UTF8 as BSU

@@ -11,7 +11,7 @@ Immensely naive decision tree synthesizer.
 module Oracle.Examples.Synth.DecisionTree where
 
 import Oracle.Data.Embeddable
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 
 import Oracle.Examples.Synth.Features (Features(Features))
 import qualified Oracle.Examples.Synth.Features as Features
@@ -52,10 +52,10 @@ decisionTreeNaive fuel synthLeaf spec
       | TTSInfo.isEmpty info = deadend ""
       | otherwise            = synthLeaf $ spec { ESpec.ctx = ctx }
 
-    core fuel spec@(ESpec info (bs, ctx) labels) = choiceN (snapshot "leafVsNode" fuel spec) $ [
+    core fuel spec@(ESpec info (bs, ctx) labels) = choice (snapshot "leafVsNode" fuel spec) $ [
       ("leaf", basecase spec),
       ("node", do
-          b <- oneOfN (snapshot "feature" fuel spec) $ Features.choices bs
+          b <- oneOf (snapshot "feature" fuel spec) $ Features.choices bs
           let (specT, specF) = splitSpec b spec
           guard $ all okInfo [ESpec.info specT, ESpec.info specF]
           trueGuesses  <- decisionTreeNaive (fuel-1) synthLeaf specT

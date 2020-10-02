@@ -10,7 +10,7 @@ Authors: Daniel Selsam
 module Oracle.Search.BestFirst where
 
 import Oracle.Data.Embeddable
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 
 import Oracle.Search.Result (Result(Result))
 import qualified Oracle.Search.Result as Result
@@ -76,10 +76,10 @@ bestFirstSearch opts oracle psi = flip evalStateT s0 $ flip runReaderT opts $ se
         Choice cp@(ChoicePoint snap cs) -> do
           -- TODO: for now we ignore the valueHead
           pi <- lift . lift $ oracle cp
-          for_ [1..Seq.length cs] $ \i' -> do
-            let i = Seq.length cs - i'
+          for_ [1..Vector.length cs] $ \i' -> do
+            let i = Vector.length cs - i'
             let p = pi Vector.! i
             let newCumLogProb = cumLogProb + log p
-            let task = Task (snd $ Seq.index cs i) $ Trace $ (Decision snap (fmap fst cs) i p) : Trace.decisions trace
+            let task = Task (snd $ cs Vector.! i) $ Trace $ (Decision snap (fmap fst cs) i p) : Trace.decisions trace
             modify $ \s -> s { tasks = PQ.insert newCumLogProb task (tasks s) }
           search (fuel-1)

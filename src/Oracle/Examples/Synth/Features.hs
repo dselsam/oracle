@@ -14,7 +14,6 @@ Features, computed eagerly.
 module Oracle.Examples.Synth.Features where
 
 import Oracle.Data.Embeddable
-import Oracle.SearchT (NamedChoice)
 import Oracle.Examples.Synth.TTSInfo (TTSInfo)
 import Oracle.Examples.Synth.TTS (TTS)
 import qualified Oracle.Examples.Synth.TTS as TTS
@@ -23,6 +22,8 @@ import qualified Oracle.Util.List as List
 import Oracle.Examples.Synth.SynthContext
 
 import qualified Data.List as List
+
+type NamedChoice a = (String, a)
 
 newtype Features a = Features {
   choices :: [NamedChoice (TTS a)]

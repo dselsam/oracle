@@ -10,7 +10,7 @@ Authors: Daniel Selsam
 module Oracle.Search.BruteForce where
 
 import Oracle.Data.Embeddable
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 
 import Oracle.Search.Result (Result(Result))
 import qualified Oracle.Search.Result as Result
@@ -26,6 +26,9 @@ import qualified Oracle.Search.Decision as Decision
 
 import Data.Sequence (Seq, (|>), (<|), (><))
 import qualified Data.Sequence as Seq
+
+import Data.Vector (Vector)
+import qualified Data.Vector as Vector
 
 import Oracle.Data.Deque (Deque)
 import qualified Oracle.Data.Deque as Deque
@@ -71,9 +74,9 @@ bruteForceSearch opts psi = flip evalStateT s0 $ flip runReaderT opts $ search (
           finished <- gets $ (== maxResults) . Seq.length . results
           if finished then gets results else search (fuel-1)
         Choice (ChoicePoint cp cs) -> do
-          for_ [1..Seq.length cs] $ \i' -> do
-            i <- asks searchAlg >>= \case DepthFirst -> pure $ Seq.length cs - i'; BreadthFirst -> pure $ i' - 1
-            let task = Task (snd $ Seq.index cs i) $ Trace $ (Decision cp (fmap fst cs) i) 0.0 : Trace.decisions trace
+          for_ [1..Vector.length cs] $ \i' -> do
+            i <- asks searchAlg >>= \case DepthFirst -> pure $ Vector.length cs - i'; BreadthFirst -> pure $ i' - 1
+            let task = Task (snd $ cs Vector.! i) $ Trace $ (Decision cp (fmap fst cs) i) 0.0 : Trace.decisions trace
             side <- asks searchAlg >>= \case
               BreadthFirst -> pure Deque.Back
               DepthFirst   -> pure Deque.Front

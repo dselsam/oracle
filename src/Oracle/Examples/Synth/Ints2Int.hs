@@ -13,7 +13,7 @@ Synthesizing simple arithmetic formulae `[Int] -> Int` with deductive backpropag
 module Oracle.Examples.Synth.Ints2Int where
 
 import Oracle.Data.Embeddable
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 
 import Oracle.Examples.Synth.TTS (TTS, ForTrain, ForTest)
 import qualified Oracle.Examples.Synth.TTS as TTS
@@ -35,12 +35,12 @@ ints2int :: (Monad m) => Int -> SynthFn m ESpec (Features Int) Int
 ints2int maxDepth spec@(ESpec _ xs labels) = synthInt maxDepth spec
   where
     synthInt 0    spec = basecase (0 :: Int) spec
-    synthInt fuel spec = choiceN (snapshot "synthInt" fuel spec) [
+    synthInt fuel spec = choice (snapshot "synthInt" fuel spec) [
       ("basecase", basecase fuel spec),
       ("backup",   do
-          x <- oneOfN (snapshot "feature" fuel spec) $ Features.choices xs
+          x <- oneOf (snapshot "feature" fuel spec) $ Features.choices xs
           let specWithArg = spec { ESpec.ctx = (x, xs) }
-          (newSpec, reconstruct) <- choiceN (snapshot "backup" fuel spec) [
+          (newSpec, reconstruct) <- choice (snapshot "backup" fuel spec) [
             ("add",  backupAdd  specWithArg),
             ("mul",  backupMul  specWithArg),
             ("div1", backupDiv1 specWithArg),
@@ -50,14 +50,14 @@ ints2int maxDepth spec@(ESpec _ xs labels) = synthInt maxDepth spec
           liftO $ reconstruct guesses)
       ]
 
-    basecase fuel spec = choiceN (snapshot "basecase" fuel spec) [
+    basecase fuel spec = choice (snapshot "basecase" fuel spec) [
       ("identity", do
-          x <- oneOfN (snapshot "basecase-identity" fuel spec) $ Features.choices xs
+          x <- oneOf (snapshot "basecase-identity" fuel spec) $ Features.choices xs
           Synth.identity $ spec { ESpec.ctx = x }),
       ("constant", do
           -- TODO: this is unnecessary, but without it, `constant` will be more shallow than `identity`
           -- Possible fixes: heuristics/explicit-costs/scoping
-          _ <- oneOfN "bump-depth" $ [("bump-depth", ())]
+          _ <- oneOf "bump-depth" $ [("bump-depth", ())]
           Synth.constant spec)
       ]
 

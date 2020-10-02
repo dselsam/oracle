@@ -6,7 +6,7 @@ Authors: Daniel Selsam
 
 module Test.Oracle.Examples.Synth.Ints2Int where
 
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 import Oracle.Search.BruteForce
 import qualified Oracle.Search.Result as Result
 

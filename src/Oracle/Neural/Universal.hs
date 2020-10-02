@@ -7,7 +7,7 @@ Authors: Daniel Selsam
 module Oracle.Neural.Universal where
 
 import Oracle.Data.Embeddable
-import Oracle.SearchT hiding (snapshot, choices)
+import Oracle.Control.Monad.Search hiding (snapshot, choices)
 
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq

@@ -12,7 +12,7 @@ Disjunctive specifications.
 module Oracle.Examples.Synth.Specs.DSpec where
 
 import Oracle.Data.Embeddable
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 import Oracle.Examples.Synth.TTS (TTS(TTS), ForTrain, ForTest)
 import Oracle.Examples.Synth.TTSInfo
 import qualified Oracle.Examples.Synth.TTS as TTS
@@ -36,5 +36,5 @@ nExactSpecs (DSpec _ _ labels) = List.product (map length labels)
 
 blast :: (Monad m, HasToEmbeddable a, HasToEmbeddable b) => b -> DSpec ctx a -> SearchT m (ESpec ctx a)
 blast snapshot (DSpec info ctx labels) = do
-  labels :: ForTrain a <- flip mapM (zip [1..] labels) $ \(i, labels) -> oneOf snapshot labels
+  labels :: ForTrain a <- flip mapM (zip [1..] labels) $ \(i, labels) -> oneOfSelf snapshot labels
   pure $ ESpec info ctx labels

@@ -13,7 +13,7 @@ Replay search from list of choice indices.
 module Oracle.Search.Replay where
 
 import Oracle.Data.Embeddable
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 
 import Oracle.Search.Result (Result(Result))
 import qualified Oracle.Search.Result as Result
@@ -27,8 +27,8 @@ import qualified Oracle.Search.Task as Task
 import Oracle.Search.Decision (Decision(Decision))
 import qualified Oracle.Search.Decision as Decision
 
-import Data.Sequence (Seq, (|>), (<|), (><))
-import qualified Data.Sequence as Seq
+import Data.Vector (Vector)
+import qualified Data.Vector as Vector
 
 import Oracle.Data.Deque (Deque)
 import qualified Oracle.Data.Deque as Deque
@@ -47,6 +47,6 @@ replay f idxs = core f idxs [] where
     Choice (ChoicePoint cp cs) -> case idxs of
       [] -> error $ "[replay] no more indices: " ++ show cp
       (idx:idxs) -> do
-        let k = snd $ Seq.index cs idx
+        let k = snd $ cs Vector.! idx
         let decision = Decision cp (fmap fst cs) idx 0.0
         core k idxs (decision:decisions)
