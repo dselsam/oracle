@@ -41,6 +41,8 @@ import GHC.Exts (toList)
 import qualified Data.Text as Text
 import Oracle.Data.Grid.Grid (Grid(Grid))
 import Oracle.Data.Grid.Dims (Dims(Dims))
+import Oracle.Data.Graph (Graph(Graph), Edge(Edge))
+import qualified Oracle.Data.Graph as Graph
 
 data Embeddable =
   EUnit ()
@@ -53,6 +55,7 @@ data Embeddable =
   | ESet (Set Embeddable)
   | EMap [(Embeddable, Embeddable)]
   | EGrid (Grid Embeddable)
+  | EGraph (Graph Embeddable Embeddable)
   | ERecord String [(String, Embeddable)]
   | EData String [(String, Embeddable)] -- TODO: more data?
   deriving (Eq, Ord, Show)
@@ -90,6 +93,9 @@ instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (Map a b) whe
 instance (HasToEmbeddable a) => HasToEmbeddable (Grid a) where
   toEmbeddable xs = EGrid (Grid.map (\_ -> toEmbeddable) xs)
 
+instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (Graph a b) where
+  toEmbeddable = EGraph . Graph.mapEdges toEmbeddable . Graph.mapNodes toEmbeddable
+
 data Attrs = Attrs String [(String, Embeddable)]
 
 instance HasToEmbeddable Attrs where
@@ -106,8 +112,25 @@ toProto x = case x of
   ESet s            -> defMessage & #set .~ (defMessage & #elems .~ (map toProto $ Set.toList s))
   EMap assocs       -> defMessage & #map .~ (defMessage & #assocs .~ (map pair2proto assocs))
   EGrid g           -> defMessage & #grid .~ grid2proto g
+  EGraph g          -> defMessage & #graph .~ graph2proto g
   ERecord n fields  -> defMessage & #record .~ (defMessage & #name .~ Text.pack n & #fields .~ (flip map fields $ \(k, v) -> defMessage & #name .~ Text.pack k & #value .~ toProto v))
 
   where
-    pair2proto (x, y) = defMessage & #fst .~ toProto x & #snd .~ toProto y
-    grid2proto (Grid (Dims nRows nCols) elems) = defMessage & #nRows .~ fromIntegral nRows & #nCols .~ fromIntegral nCols & #elems .~ Vector.toList (fmap toProto elems)
+    pair2proto (x, y) = defMessage
+      & #fst .~ toProto x
+      & #snd .~ toProto y
+
+    grid2proto (Grid (Dims nRows nCols) elems) = defMessage
+      & #nRows .~ fromIntegral nRows
+      & #nCols .~ fromIntegral nCols
+      & #elems .~ Vector.toList (fmap toProto elems)
+
+    graph2proto (Graph nNodes nodes edges) = defMessage
+      & #nNodes .~ fromIntegral nNodes
+      & #nodes  .~ (Vector.toList $ fmap toProto nodes)
+      & #edges  .~ (Vector.toList $ fmap edge2proto edges)
+
+    edge2proto (Edge src dst val) = defMessage
+      & #src    .~ fromIntegral src
+      & #dst    .~ fromIntegral dst
+      & #val    .~ toProto val

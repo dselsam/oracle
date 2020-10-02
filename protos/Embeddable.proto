@@ -30,12 +30,13 @@ message Embeddable {
 
     message Graph {
         message Edge {
-            int32 src = 1;
-            int32 dst = 2;
+            int32 src      = 1;
+            int32 dst      = 2;
+            Embeddable val = 3;
         }
         int32 nNodes = 1;
-        repeated Edge edges = 2;
-        repeated Embeddable elems = 3;
+        repeated Embeddable nodes = 2;
+        repeated Edge edges = 3;
     }
 
     message Record {
