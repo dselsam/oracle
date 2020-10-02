@@ -12,7 +12,7 @@ import Data.Vector (Vector)
 
 data Decision = Decision {
   snapshot  :: Embeddable,
-  choices   :: Vector Embeddable, -- TODO: Vector?
+  choices   :: Vector Embeddable,
   choiceIdx :: Int,
   score     :: Float
   } deriving (Eq, Ord, Show)

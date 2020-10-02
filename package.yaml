@@ -35,6 +35,7 @@ dependencies:
 - proto-lens-runtime
 - microlens
 - text
+- MonadRandom
 
 library:
   source-dirs: src

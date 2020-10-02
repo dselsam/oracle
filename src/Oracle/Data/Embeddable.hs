@@ -23,6 +23,9 @@ import Data.Sequence (Seq)
 import Data.Set (Set)
 import qualified Data.Set as Set
 
+import Data.HashSet (HashSet)
+import qualified Data.HashSet as HashSet
+
 import Data.Map (Map)
 import qualified Data.Map as Map
 
@@ -39,8 +42,7 @@ import qualified Proto.Protos.DataPoint as P
 
 import GHC.Exts (toList)
 import qualified Data.Text as Text
-import Oracle.Data.Grid.Grid (Grid(Grid))
-import Oracle.Data.Grid.Dims (Dims(Dims))
+import Oracle.Data.Grid (Grid(Grid), Index(Index), Dims(Dims))
 import Oracle.Data.Graph (Graph(Graph), Edge(Edge))
 import qualified Oracle.Data.Graph as Graph
 
@@ -50,9 +52,10 @@ data Embeddable =
   | EInt Int
   | EString String
   | EPair (Embeddable, Embeddable)
+  | EMaybe (Maybe Embeddable)
   | EList [Embeddable]
   | ESeq (Seq Embeddable)
-  | ESet (Set Embeddable)
+  | ESet [Embeddable]
   | EMap [(Embeddable, Embeddable)]
   | EGrid (Grid Embeddable)
   | EGraph (Graph Embeddable Embeddable)
@@ -78,6 +81,9 @@ instance {-# OVERLAPS #-} HasToEmbeddable String where
 instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (a, b) where
   toEmbeddable (a, b) = EPair (toEmbeddable a, toEmbeddable b)
 
+instance (HasToEmbeddable a) => HasToEmbeddable (Maybe a) where
+  toEmbeddable m = EMaybe (fmap toEmbeddable m)
+
 instance {-# OVERLAPPABLE #-} (HasToEmbeddable a) => HasToEmbeddable [a] where
   toEmbeddable xs = EList (map toEmbeddable xs)
 
@@ -85,13 +91,22 @@ instance (HasToEmbeddable a) => HasToEmbeddable (Seq a) where
   toEmbeddable xs = ESeq (fmap toEmbeddable xs)
 
 instance (HasToEmbeddable a) => HasToEmbeddable (Set a) where
-  toEmbeddable xs = ESet (Set.map toEmbeddable xs)
+  toEmbeddable xs = ESet (map toEmbeddable $ Set.toList xs)
+
+instance (HasToEmbeddable a) => HasToEmbeddable (HashSet a) where
+  toEmbeddable xs = ESet (map toEmbeddable $ HashSet.toList xs)
 
 instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (Map a b) where
   toEmbeddable = EMap . map (\(k, v) -> (toEmbeddable k, toEmbeddable v)) . Map.assocs
 
 instance (HasToEmbeddable a) => HasToEmbeddable (Grid a) where
-  toEmbeddable xs = EGrid (Grid.map (\_ -> toEmbeddable) xs)
+  toEmbeddable xs = EGrid (fmap toEmbeddable xs)
+
+instance HasToEmbeddable Index where
+  toEmbeddable (Index row col) = ERecord "Index" [
+    ("row", toEmbeddable row),
+    ("col", toEmbeddable col)
+    ]
 
 instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (Graph a b) where
   toEmbeddable = EGraph . Graph.mapEdges toEmbeddable . Graph.mapNodes toEmbeddable
@@ -106,10 +121,11 @@ toProto x = case x of
   EBool b           -> defMessage & #b .~ b
   EInt n            -> defMessage & #n .~ fromIntegral n
   EString s         -> defMessage & #s .~ Text.pack s
+  EMaybe m          -> defMessage & #maybe .~ maybe2proto m
   EPair p           -> defMessage & #pair .~ pair2proto p
   EList xs          -> defMessage & #list .~ (defMessage & #elems .~ map toProto xs)
   ESeq xs           -> defMessage & #array .~ (defMessage & #elems .~ (toList $ fmap toProto xs))
-  ESet s            -> defMessage & #set .~ (defMessage & #elems .~ (map toProto $ Set.toList s))
+  ESet s            -> defMessage & #set .~ (defMessage & #elems .~ (map toProto s))
   EMap assocs       -> defMessage & #map .~ (defMessage & #assocs .~ (map pair2proto assocs))
   EGrid g           -> defMessage & #grid .~ grid2proto g
   EGraph g          -> defMessage & #graph .~ graph2proto g
@@ -120,10 +136,14 @@ toProto x = case x of
       & #fst .~ toProto x
       & #snd .~ toProto y
 
+    maybe2proto m = case m of
+      Nothing -> defMessage
+      Just x  -> defMessage & #val .~ toProto x
+
     grid2proto (Grid (Dims nRows nCols) elems) = defMessage
       & #nRows .~ fromIntegral nRows
       & #nCols .~ fromIntegral nCols
-      & #elems .~ Vector.toList (fmap toProto elems)
+      & #elems .~ toList (fmap toProto elems)
 
     graph2proto (Graph nNodes nodes edges) = defMessage
       & #nNodes .~ fromIntegral nNodes

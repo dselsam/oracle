@@ -6,6 +6,10 @@ message Embeddable {
         Embeddable snd = 2;
     }
 
+    message Maybe {
+        Embeddable val = 1;
+    }
+
     message List {
         repeated Embeddable elems = 1;
     }
@@ -54,12 +58,13 @@ message Embeddable {
         int32   n      = 2;
         string  s      = 3;
         Pair    pair   = 4;
-        List    list   = 5;
-        Array   array  = 6;
-        Set     set    = 7;
-        Map     map    = 8;
-        Grid    grid   = 9;
-        Graph   graph  = 10;
-        Record  record = 11;
+        Maybe   maybe  = 5;
+        List    list   = 6;
+        Array   array  = 7;
+        Set     set    = 8;
+        Map     map    = 9;
+        Grid    grid   = 10;
+        Graph   graph  = 11;
+        Record  record = 12;
     }
 }

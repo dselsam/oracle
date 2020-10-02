@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Selsam
 -}
 
-module Oracle.Data.Grid (module Oracle.Data.Grid.Grid) where
+module Oracle.Data.Grid (
+  Grid(Grid),
+  Index(Index),
+  Dims(Dims)
+  ) where
 
 import Oracle.Data.Grid.Index
 import Oracle.Data.Grid.Dims
