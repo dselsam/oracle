@@ -37,5 +37,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", action="store", dest='port', type=int, default=10000)
     opts = parser.parse_args()
-    server = Server(Handler())
+    server = Server(Handler(cfg=None)) # TODO: parse config
     server.launch(port=opts.port)
