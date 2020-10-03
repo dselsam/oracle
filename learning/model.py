@@ -5,17 +5,17 @@
 import torch
 import torch.nn as nn
 
-from embed import Embedder
+from embedder import Embedder
 from reasoner import Reasoner
 
-class UniversalOracle(nn.Module):
+class GenericModel(nn.Module):
     def __init__(self, cfg):
-        super(UniversalOracle, self).__init__()
+        super(GenericModel, self).__init__()
         self.cfg = cfg
-        self.embedder = Embedder(cfg)
-        self.reasoner = Reasoner(cfg)
+        self.embedder = Embedder(cfg['embedder'])
+        self.reasoner = Reasoner(cfg['reasoner'])
 
     def forward(self, snapshot, choices):
         # TODO(jesse):
         #   - pipe embedder into reasoner
-        raise Exception("UniversalOracle.forward not yet implemented")
+        raise Exception("GenericModel.forward not yet implemented")

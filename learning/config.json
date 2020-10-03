@@ -1,0 +1,17 @@
+{
+    "model" : {
+        "embedder" : {
+            "int"   : {},
+            "graph" : { "n_rounds" : 3 },
+            "grid"  : {}
+        },
+
+        "reasoner" : {
+            "n_layers" : 3
+        }
+    },
+
+    "train" : {
+        "learning_rate" : 1e-4
+    }
+}

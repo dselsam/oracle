@@ -4,6 +4,7 @@
 
 import socket
 import sys
+import json
 from learning.protos.Command_pb2 import Command
 from learning.handler import Handler
 
@@ -35,7 +36,11 @@ class Server:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", action="store", dest='port', type=int, default=10000)
+    parser.add_argument("--port",   action="store", dest='port',   type=int, default=10000)
+    parser.add_argument("--config", action="store", dest='config', type=str, default="learning/config.json")
+
     opts = parser.parse_args()
-    server = Server(Handler(cfg=None)) # TODO: parse config
+    with open(opts.config, 'r') as f: cfg = json.load(f)
+
+    server = Server(Handler(cfg=cfg))
     server.launch(port=opts.port)

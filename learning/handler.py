@@ -3,12 +3,12 @@
 # Authors: Daniel Selsam
 
 from learning.protos.Response_pb2 import Response, Prediction
-from model import UniversalOracle
+from model import GenericModel
 
 class Handler:
     def __init__(self, cfg):
         # TODO(sameera): store model (+ friends) here
-        self.model = UniversalOracle(cfg)
+        self.model = GenericModel(cfg['model'])
 
     def handle(self, cmd):
         kind = cmd.WhichOneof("body")
