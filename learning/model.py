@@ -15,7 +15,15 @@ class GenericModel(nn.Module):
         self.embedder = Embedder(cfg['embedder'])
         self.reasoner = Reasoner(cfg['reasoner'])
 
+        self.add_module("embedder", self.embedder)
+        self.add_module("reasoner", self.reasoner)
+
+        # TODO: tmp only, until the other modules have parameters
+        self.add_module("tmp_linear", nn.Linear(1, 1))
+
     def forward(self, snapshot, choices):
         # TODO(jesse):
         #   - pipe embedder into reasoner
-        raise Exception("GenericModel.forward not yet implemented")
+        # e_snapshot  = self.embedder(snapshot)
+        # e_choices   = self.embedder(choices)
+        return torch.zeros(len(choices))
