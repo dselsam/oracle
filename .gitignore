@@ -4,3 +4,5 @@ __pycache__
 *.pyc
 src/Proto
 learning/protos
+/oracle.cabal
+/stack.yaml.lock
