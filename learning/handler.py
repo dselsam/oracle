@@ -40,11 +40,12 @@ class Handler:
         return response
 
     def handle_train(self, train_cmd):
-        # TODO(sameera): train train_cmd.nEpochs epochs on train_cmd.datapoints
+        # TODO(sameera): train train_cmd.nEpochs epochs on train_cmd.datapoints, return average loss
         # (using current model)
         response = Response()
         response.success = False
         response.msg     = "train command not yet implemented"
+        response.loss    = 0.0
         return response
 
     def handle_valid(self, valid_cmd):
