@@ -1,9 +1,11 @@
 syntax="proto3";
 
-import "protos/Result.proto";
+message Prediction {
+    repeated float policy = 2;
+}
 
 message Response {
     bool success = 1;
     string msg   = 2;
-    repeated Result predictions = 3;
+    repeated Prediction predictions = 3;
 }

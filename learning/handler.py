@@ -2,8 +2,7 @@
 # Released under Apache 2.0 license as described in the file LICENSE.
 # Authors: Daniel Selsam
 
-from learning.protos.Response_pb2 import Response
-from learning.protos.Result_pb2 import Result
+from learning.protos.Response_pb2 import Response, Prediction
 
 class Handler:
     def __init__(self):
@@ -33,10 +32,10 @@ class Handler:
         response.msg         = "predict command not yet implemented"
         for choicePoint in predict_cmd.choicePoints:
             # TODO(dselsam): change name to prediction
-            result = Result()
+            prediction = Prediction()
             denom = len(choicePoint.choices)
-            result.policy.extend([1.0 / denom for _ in choicePoint.choices])
-            response.predictions.append(result)
+            prediction.policy.extend([1.0 / denom for _ in choicePoint.choices])
+            response.predictions.append(prediction)
         return response
 
     def handle_train(self, train_cmd):

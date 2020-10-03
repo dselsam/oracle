@@ -38,7 +38,7 @@ import Data.List.Split (splitOn)
 
 import qualified Proto.Protos.Response as P
 import qualified Proto.Protos.Response_Fields as Response
-import qualified Proto.Protos.Result_Fields as Result
+import qualified Proto.Protos.Response_Fields as Prediction
 
 data Args = Args {
   host           :: String,
@@ -105,7 +105,7 @@ genData args = do
     predict choicePoint = do
       response <- execute $ Universal.predict [choicePoint]
       -- TODO(dselsam): there must be a way to read directly as a vector!
-      pure . Vector.fromList $ (head (response ^. Response.predictions) ^. Result.policy)
+      pure . Vector.fromList $ (head (response ^. Response.predictions) ^. Prediction.policy)
 
 main :: IO ()
 main = do

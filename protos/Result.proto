@@ -1,5 +1,0 @@
-syntax="proto3";
-
-message Result {
-    repeated float policy = 2;
-}
