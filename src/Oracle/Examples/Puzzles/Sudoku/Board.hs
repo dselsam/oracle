@@ -24,7 +24,12 @@ import Control.Monad.State (MonadState, get, gets, modify, execState)
 import Control.Monad.Reader (MonadReader, ask, asks)
 import Data.Foldable (for_)
 
-newtype Value = Value Int deriving (Eq, Ord, Show)
+import qualified Data.List as List
+
+newtype Value = Value Int deriving (Eq, Ord)
+
+instance Show Value where
+  show (Value x) = show x
 
 instance HasToEmbeddable Value where
   toEmbeddable (Value x) = toEmbeddable x
@@ -32,7 +37,12 @@ instance HasToEmbeddable Value where
 data Board = Board {
   grid   :: Grid Value,
   emptys :: Set Index
-  } deriving (Show)
+  }
+
+instance Show Board where
+  show (Board grid values) = "\n" ++ List.intercalate "\n" rows where
+    rows = map mkCol [0..8]
+    mkCol i = List.intercalate "|" (map (\j -> show $ Grid.get (Index i j) grid) [0..8])
 
 empty :: Board
 empty = Board {
@@ -83,11 +93,12 @@ lookupSubgridIdx sgIdx = do
   pure $ Grid.get (subgrid2idx sgIdx) grid
 
 set :: (MonadState Board m, MonadFail m, Alternative m) => Index -> Value -> m ()
-set idx x = do
+set idx v@(Value x) = do
+  guard $ x > 0
   Value y <- lookupIdx idx
   when (y > 0) $ fail "position already occupied"
-  check idx x
-  modify $ \b -> b { grid = Grid.set idx x (grid b), emptys = Set.delete idx (emptys b) }
+  check idx v
+  modify $ \b -> b { grid = Grid.set idx v (grid b), emptys = Set.delete idx (emptys b) }
 
 check :: (MonadState Board m, Alternative m) => Index -> Value -> m ()
 check idx@(Index r c) x = do

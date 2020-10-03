@@ -72,22 +72,22 @@ gen f = Board.isFilled >>= \case
 genStepRCV :: Index -> GenM [Int]
 genStepRCV idx@(Index r c) = do
   Value x  <- Board.readIdx idx
-  pure [r, c, x - 1]
+  pure [r, c, x]
 
 genStepVRC :: Index -> GenM [Int]
 genStepVRC idx@(Index r c) = do
   Value x  <- Board.readIdx idx
-  pure [x-1, r, c]
+  pure [x, r, c]
 
 genStepOIV :: Index -> GenM [Int]
 genStepOIV idx = do
   let SubgridIndex (Index oi oj) (Index ii ij) = Board.idx2subgrid idx
   Value x <- Board.readIdx idx
-  pure [oi, oj, ii, ij, x - 1]
+  pure [oi, oj, ii, ij, x]
 
 genStepEmpty :: Index -> GenM [Int]
 genStepEmpty idx = do
   emptys <- gets Board.emptys
   let i = Set.findIndex idx emptys
   Value x <- Board.readIdx idx
-  pure [i, x - 1]
+  pure [i, x]

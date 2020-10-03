@@ -37,6 +37,8 @@ dependencies:
 - text
 - MonadRandom
 - split
+- concurrent-output
+- ascii-progress
 
 library:
   source-dirs: src

@@ -47,13 +47,22 @@ train :: Int -> [Decision] -> P.Command
 train nEpochs decisions = defMessage
   & #train .~ (defMessage
                  & #nEpochs .~ (fromIntegral nEpochs)
-                 & #datapoints .~ (flip map decisions $ \(Decision snap choices choiceIdx) ->
-                                      defMessage
-                                      & #choicePoint .~ (defMessage
-                                                         & #snapshot .~ Embeddable.toProto snap
-                                                         & #choices  .~ Vector.toList (fmap Embeddable.toProto choices))
-                                      & #label .~ (defMessage
-                                                  & #choiceIdx  .~ (fromIntegral choiceIdx))))
+                 & #datapoints .~ (decisions2datapoints decisions))
+
+valid :: [Decision] -> P.Command
+valid decisions = defMessage
+  & #valid .~ (defMessage
+                 & #datapoints .~ decisions2datapoints decisions)
+
+decisions2datapoints :: [Decision] -> [P.DataPoint]
+decisions2datapoints decisions = flip map decisions $ \(Decision snap choices choiceIdx) ->
+  defMessage
+  & #choicePoint .~ (defMessage
+                      & #snapshot .~ Embeddable.toProto snap
+                      & #choices  .~ Vector.toList (fmap Embeddable.toProto choices))
+  & #label .~ (defMessage
+                & #choiceIdx  .~ (fromIntegral choiceIdx))
+
 
 save :: FilePath -> P.Command
 save filename = defMessage
