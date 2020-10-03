@@ -2,7 +2,6 @@ import math
 import torch
 import torch.nn as nn
 
-
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding, self).__init__()
@@ -18,7 +17,6 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         x = x + self.pe[:, :x.size(1)]
         return self.dropout(x)
-
 
 class TextEncoder(nn.Module):
     def __init__(self, vocab_size, embed_dim, feedforward_dim,
@@ -54,6 +52,3 @@ class TextEncoder(nn.Module):
         snapshot_embed = self.encode(snapshot_ids, snapshot_pad_mask, self.snapshot_encoder)
         choices_embed = self.encode(choices_ids, choices_pad_mask, self.choice_encoder, is_choices=True)
         return snapshot_embed, choices_embed
-
-
-

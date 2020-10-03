@@ -110,7 +110,7 @@ check idx@(Index r c) x = do
 
 instance HasToEmbeddable Board where
   toEmbeddable (Board grid emptys) = ERecord "sudoku board" [
-    ("grid",    toEmbeddable grid),
-    ("emptys",  toEmbeddable emptys),
-    ("nEmptys", toEmbeddable (Set.size emptys))
-    ]
+    ("grid",    toEmbeddable grid)]
+    -- ("emptys",  toEmbeddable emptys), 
+    -- ("nEmptys", toEmbeddable (Set.size emptys))
+    

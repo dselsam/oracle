@@ -5,12 +5,10 @@ from torch.utils.data import Dataset
 from torchtext.vocab import build_vocab_from_iterator
 import torch
 
-
 @dataclass
 class Embeddable:
     text: str = None
     val: float = None
-
 
 @dataclass
 class ChoicePoint:
