@@ -35,7 +35,7 @@ import Data.ProtoLens (defMessage)
 import Data.ProtoLens.Labels ()
 import Lens.Micro
 import Lens.Micro.Extras (view)
-import qualified Proto.Protos.Embeddable as P
+import qualified Proto.Embeddable as P
 
 import GHC.Exts (toList)
 import qualified Data.Text as Text

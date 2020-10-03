@@ -1,6 +1,6 @@
-PYTHON_OUT=learning/
-HASKELL_OUT=src/
-PROTOS=protos
+PYTHON_OUT=../learning/
+HASKELL_OUT=../src/
+PROTOS=./
 
 protoc --plugin=protoc-gen-haskell=`which proto-lens-protoc` \
        --python_out="$PYTHON_OUT" \

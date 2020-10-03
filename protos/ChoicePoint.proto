@@ -1,5 +1,5 @@
 syntax="proto3";
-import "protos/Embeddable.proto";
+import "Embeddable.proto";
 
 message ChoicePoint {
     Embeddable snapshot = 1;

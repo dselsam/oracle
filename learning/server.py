@@ -4,8 +4,8 @@
 
 import socket
 import sys
-from learning.protos.Command_pb2 import Command
-from learning.handler import Handler
+from Command_pb2 import Command
+from handler import Handler
 
 class Server:
     def __init__(self, handler):
@@ -31,6 +31,7 @@ class Server:
                 connection.sendall(response.SerializeToString())
             finally:
                 connection.close()
+
 
 if __name__ == "__main__":
     import argparse
