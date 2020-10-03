@@ -11,7 +11,7 @@ Basic inductive synthesis building blocks.
 module Oracle.Examples.Synth.Basic where
 
 import Oracle.Data.Embeddable
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 
 import Oracle.Examples.Synth.Features (Features(Features))
 
@@ -81,5 +81,5 @@ lookupTable spec@(ESpec _ inputs labels) = do
 focus :: (Monad m) => SynthFn m ESpec (TTS a) b -> SynthFn m ESpec (Features a) b
 focus synthEx (ESpec info (Features xs) labels) = do
   -- TODO: need conventions for snapshots/choices
-  x <- oneOfN "focus" xs
+  x <- oneOf "focus" xs
   synthEx $ ESpec info x labels

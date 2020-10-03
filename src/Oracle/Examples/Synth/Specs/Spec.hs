@@ -14,7 +14,7 @@ This abstraction level is rarely used, since most procedures handle only one typ
 {-# LANGUAGE StrictData #-}
 module Oracle.Examples.Synth.Specs.Spec where
 
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 import Oracle.Examples.Synth.TTSInfo (TTSInfo(TTSInfo))
 import Oracle.Examples.Synth.TTS (TTS(TTS), ForTrain, ForTest)
 import qualified Oracle.Examples.Synth.TTS as TTS

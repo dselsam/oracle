@@ -8,11 +8,10 @@ module Oracle.Search.Decision where
 
 import Oracle.Data.Embeddable
 
-import Data.Sequence (Seq)
+import Data.Vector (Vector)
 
 data Decision = Decision {
-  snapshot  :: Embeddable,
-  choices   :: Seq Embeddable, -- TODO: Vector?
-  choiceIdx :: Int,
-  score     :: Float
+  snapshot   :: Embeddable,
+  choices    :: Vector Embeddable,
+  choiceIdx  :: Int -- TODO(dselsam): add nStepsAway?
   } deriving (Eq, Ord, Show)

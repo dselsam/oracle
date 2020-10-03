@@ -6,7 +6,7 @@ Authors: Daniel Selsam
 
 module Oracle.Search.Task where
 
-import Oracle.SearchT (SearchT)
+import Oracle.Control.Monad.Search (SearchT)
 import Oracle.Search.Trace (Trace)
 
 data Task m a = Task {

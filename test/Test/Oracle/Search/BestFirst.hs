@@ -7,7 +7,7 @@ Authors: Daniel Selsam
 {-# LANGUAGE ScopedTypeVariables #-}
 module Test.Oracle.Search.BestFirst where
 
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 import Oracle.Search.BestFirst
 import qualified Oracle.Search.Result as Result
 import qualified Oracle.Neural.Oracle as Oracle
@@ -29,9 +29,9 @@ search maxResults f = do
 
 testSimple = describe "testSimple" $ do
   let odds = do
-        n1 :: Int <- oneOf () [0..10]
+        n1 :: Int <- oneOfSelf () [0..10]
         if mod n1 2 == 1 then pure (n1, 0) else do
-          n2 :: Int <- oneOf () [0..10]
+          n2 :: Int <- oneOfSelf () [0..10]
           guard $ mod (n1 + n2) 2 == 1
           pure (n1, n2)
 

@@ -6,13 +6,13 @@ Authors: Daniel Selsam
 
 module Test.Oracle.Examples.Synth.DecisionTree where
 
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 import Oracle.Search.BruteForce
 import qualified Oracle.Search.Result as Result
 
 import Oracle.Examples.Synth
-import qualified Oracle.Examples.Synth.ISPInfo as ISPInfo
-import qualified Oracle.Examples.Synth.ISP as ISP
+import qualified Oracle.Examples.Synth.TTSInfo as TTSInfo
+import qualified Oracle.Examples.Synth.TTS as TTS
 import qualified Oracle.Examples.Synth.Specs.ESpec as ESpec
 import qualified Oracle.Examples.Synth.Basic as Synth
 import qualified Oracle.Examples.Synth.Ints2Int as Synth
@@ -23,22 +23,22 @@ import Test.Hspec
 import Control.Monad (guard)
 import Control.Monad.Identity (Identity, runIdentity)
 
-find1 :: SearchT Identity (ISP a) -> [ForTest a]
+find1 :: SearchT Identity (TTS a) -> [ForTest a]
 find1 f = let opts = BruteForceOptions 1 10000 BreadthFirst
               results = runIdentity $ bruteForceSearch opts f
           in
-            map (ISP.test . Result.value) (toList results)
+            map (TTS.test . Result.value) (toList results)
 
 testNaiveBasic = describe "testNaiveBasic" $ do
-  let bs1     = ("bools1", ISP [True,  True,  False, False] [False,  True])
-  let bs2     = ("bools2", ISP [False, True,  True,  False] [True,  False])
+  let bs1     = ("bools1", TTS [True,  True,  False, False] [False,  True])
+  let bs2     = ("bools2", TTS [False, True,  True,  False] [True,  False])
 
-  let phi1     = ("ascending",  ISP [1,   2,  3,  4] [ 5,  6])
-  let phi2     = ("random",     ISP [11, 51, 41, 31] [29, 61])
-  let phi3     = ("primes",     ISP [2,   3,  5,  7] [11, 13])
-  let phi4     = ("multiples",  ISP [10, 30, 20, 40] [70, 60])
+  let phi1     = ("ascending",  TTS [1,   2,  3,  4] [ 5,  6])
+  let phi2     = ("random",     TTS [11, 51, 41, 31] [29, 61])
+  let phi3     = ("primes",     TTS [2,   3,  5,  7] [11, 13])
+  let phi4     = ("multiples",  TTS [10, 30, 20, 40] [70, 60])
 
-  let info      = ISPInfo 4 2
+  let info      = TTSInfo 4 2
   let bools     = Features [bs1, bs2]
   let ints      = Features [phi1, phi2, phi3, phi4]
 

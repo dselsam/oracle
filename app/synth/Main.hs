@@ -14,7 +14,7 @@ module Main where
 
 import System.Console.CmdArgs
 
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 import Oracle.Search.BruteForce
 
 import Oracle.Search.Decision (Decision(Decision))
@@ -129,7 +129,7 @@ mkArithProgs maxResults nIntFeatures = runIdentity $ do
 
   where
     enum :: SearchT Identity ArithProg
-    enum = choiceN "" [
+    enum = choice "" [
       ("", ArithId <$> chooseFeature),
       ("", ArithConst <$> chooseConst),
       ("", Add  <$> chooseFeature <*> enum),
@@ -139,10 +139,10 @@ mkArithProgs maxResults nIntFeatures = runIdentity $ do
       ]
 
     chooseFeature :: SearchT Identity FeatureIdx
-    chooseFeature = oneOf "" [0..(nIntFeatures - 1)]
+    chooseFeature = oneOfSelf "" [0..(nIntFeatures - 1)]
 
     chooseConst :: SearchT Identity Int
-    chooseConst = oneOf "" [1..11]
+    chooseConst = oneOfSelf "" [1..11]
 
 evalArithProg :: Features Int -> ArithProg -> Maybe (TTS Int)
 evalArithProg ints prog = case prog of
@@ -190,16 +190,16 @@ mkDTrees maxResults nBoolFeatures nIntFeatures = runIdentity $ do
 
   where
     enum :: SearchT Identity DTree
-    enum = choiceN "" [
+    enum = choice "" [
       ("", Leaf <$> chooseArithProg),
       ("", Node <$> chooseFeature <*> enum <*> enum)
       ]
 
     chooseArithProg :: SearchT Identity ArithProg
-    chooseArithProg = Seq.index arithProgs <$> oneOf "" [0..(Seq.length arithProgs - 1)]
+    chooseArithProg = Seq.index arithProgs <$> oneOfSelf "" [0..(Seq.length arithProgs - 1)]
 
     chooseFeature :: SearchT Identity FeatureIdx
-    chooseFeature = oneOf "" [0..(nBoolFeatures - 1)]
+    chooseFeature = oneOfSelf "" [0..(nBoolFeatures - 1)]
 
     arithProgs = mkArithProgs (div maxResults 100) nIntFeatures
 
@@ -260,6 +260,6 @@ main = do
     let spec  = ESpec info (bools, ints) (TTS.train $ fromJust dOutput)
     let answer = runIdentity $ Search.replay (Synth.decisionTreeNaive (synthFuel args) (Synth.ints2int $ synthFuel args) spec) choices
 
-    for_ answer $ \(Decision snapshot choices choiceIdx _) -> do
+    for_ answer $ \(Decision snapshot choices choiceIdx) -> do
       for_ (zip [0..] (toList choices)) $ \(i, choice) -> do
         S2S.appendTokensToFile (trainFilename args) $ Seq.fromList [if i == choiceIdx then "T" else "F", "SNAPSHOT"] >< S2S.embed snapshot >< Seq.singleton "CHOICE" >< S2S.embed choice

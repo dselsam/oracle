@@ -1,3 +1,9 @@
+{-
+Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Daniel Selsam
+-}
+
 module Oracle.Data.Grid.Grid where
 
 import Control.Monad (guard)
@@ -9,38 +15,25 @@ import qualified Oracle.Data.Grid.Index as Index
 import Oracle.Data.Grid.Dims (Dims(..))
 import qualified Oracle.Data.Grid.Dims as Dims
 
-import Data.Vector (Vector)
-import qualified Data.Vector as Vector
+import Data.Sequence (Seq)
+import qualified Data.Sequence as Seq
 
 data Grid a = Grid {
   dims    :: Dims,
-  elems   :: Vector a
+  elems   :: Seq a
   } deriving (Eq, Ord, Show)
 
-fromArray :: Dims -> Vector a -> Grid a
-fromArray dims v | Dims.nCells dims == Vector.length v = Grid dims v
+fromSeq :: Dims -> Seq a -> Grid a
+fromSeq dims v | Dims.nCells dims == Seq.length v = Grid dims v
 
 fromList :: Dims -> [a] -> Grid a
-fromList dims elems = fromArray dims (Vector.fromList elems)
+fromList dims elems = fromSeq dims (Seq.fromList elems)
 
-fromLists :: [[a]] -> Grid a
-fromLists [] = Grid (Dims 0 0) (Vector.fromList [])
-fromLists elems =
-  let m = length elems
-      n = length (head elems) in
-    fromArray (Dims m n) (Vector.fromList $ concat elems)
-
-fromIntLists :: [[Int]] -> Grid Int
-fromIntLists elems = fromLists elems
-
--- TODO: duplication
-fromFuncM :: (Monad m) => Dims -> (Index -> m a) -> m (Grid a)
-fromFuncM dims@(Dims m n) f = do
-  elems <- Vector.generateM (m*n) $ \i -> f (Dims.int2index dims i)
-  pure $ fromArray dims elems
-
-fromFunc :: Dims -> (Index -> a) -> Grid a
-fromFunc dims f = runIdentity $ fromFuncM dims (pure . f)
+empty :: Dims -> a -> Grid a
+empty dims x = Grid {
+  dims  = dims,
+  elems = Seq.replicate (Dims.nCells dims) x
+  }
 
 toOffset :: Grid a -> Index -> Int
 toOffset g (Index i j) = i * Dims.nCols (dims g) + j
@@ -50,11 +43,17 @@ toOffsetSafe g idx = do
   guard $ Dims.inBounds (dims g) idx
   pure $ toOffset g idx
 
-at :: Index -> Grid a -> a
-at idx g = elems g Vector.! (toOffset g idx)
+get :: Index -> Grid a -> a
+get idx g = Seq.index (elems g) (toOffset g idx)
 
-mapM :: (Monad m) => (Index -> a -> m b) -> Grid a -> m (Grid b)
-mapM f g = fromFuncM (dims g) $ \idx -> f idx $ at idx g
+set :: Index -> a -> Grid a -> Grid a
+set idx x g = g { elems = Seq.update (toOffset g idx) x (elems g) }
 
-map :: (Index -> a -> b) -> Grid a -> Grid b
-map f g = fromFunc (dims g) $ \idx -> f idx $ at idx g
+instance Functor Grid where
+  fmap f (Grid dims elems) = Grid dims (fmap f elems)
+
+instance Foldable Grid where
+  foldr f init (Grid dims elems) = foldr f init elems
+
+instance Traversable Grid where
+  traverse f (Grid dims elems) = Grid dims <$> traverse f elems

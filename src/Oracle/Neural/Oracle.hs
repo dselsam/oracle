@@ -7,7 +7,7 @@ Authors: Daniel Selsam
 module Oracle.Neural.Oracle where
 
 -- TODO: move to new directory outside of Neural?
-import Oracle.SearchT
+import Oracle.Control.Monad.Search
 import Oracle.Neural.Result (Result(Result))
 import qualified Oracle.Neural.Result as Result
 import Oracle.Neural.Query (Query(Query))

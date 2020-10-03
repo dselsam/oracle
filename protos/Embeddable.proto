@@ -1,0 +1,70 @@
+syntax="proto3";
+
+message Embeddable {
+    message Pair {
+        Embeddable fst = 1;
+        Embeddable snd = 2;
+    }
+
+    message Maybe {
+        Embeddable val = 1;
+    }
+
+    message List {
+        repeated Embeddable elems = 1;
+    }
+
+    message Array {
+        repeated Embeddable elems = 1;
+    }
+
+    message Set {
+        repeated Embeddable elems = 1;
+    }
+
+    message Map {
+        repeated Pair assocs = 1;
+    }
+
+    message Grid {
+        int32 nRows = 1;
+        int32 nCols = 2;
+        repeated Embeddable elems = 3;
+    }
+
+    message Graph {
+        message Edge {
+            int32 src      = 1;
+            int32 dst      = 2;
+            Embeddable val = 3;
+        }
+        int32 nNodes = 1;
+        repeated Embeddable nodes = 2;
+        repeated Edge edges = 3;
+    }
+
+    message Record {
+        message Field {
+            string     name = 1;
+            Embeddable value = 2;
+        }
+
+        string name = 1;
+        repeated Field fields = 2;
+    }
+
+    oneof body {
+        bool    b      = 1;
+        int32   n      = 2;
+        string  s      = 3;
+        Pair    pair   = 4;
+        Maybe   maybe  = 5;
+        List    list   = 6;
+        Array   array  = 7;
+        Set     set    = 8;
+        Map     map    = 9;
+        Grid    grid   = 10;
+        Graph   graph  = 11;
+        Record  record = 12;
+    }
+}

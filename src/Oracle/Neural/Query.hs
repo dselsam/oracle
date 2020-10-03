@@ -6,7 +6,7 @@ Authors: Daniel Selsam
 -}
 module Oracle.Neural.Query where
 
-import Oracle.SearchT (ChoicePoint(ChoicePoint))
+import Oracle.Control.Monad.Search (ChoicePoint(ChoicePoint))
 import Oracle.Data.Embeddable
 
 import qualified Data.Vector as Vector

@@ -1,2 +1,6 @@
 .stack-work/
 *~
+__pycache__
+*.pyc
+src/Proto
+learning/protos

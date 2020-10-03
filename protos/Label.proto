@@ -1,0 +1,5 @@
+syntax="proto3";
+
+message Label {
+    int32 choiceIdx  = 1;
+}

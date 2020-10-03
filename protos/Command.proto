@@ -1,0 +1,39 @@
+syntax="proto3";
+import "protos/ChoicePoint.proto";
+import "protos/DataPoint.proto";
+
+
+message InitCommand {
+}
+
+message PredictCommand {
+    repeated ChoicePoint choicePoints = 1;
+}
+
+message TrainCommand {
+    int32 nEpochs = 1;
+    repeated DataPoint datapoints = 2;
+}
+
+message ValidCommand {
+    repeated DataPoint datapoints = 1;
+}
+
+message SaveCommand {
+    string filename = 1;
+}
+
+message LoadCommand {
+    string filename = 1;
+}
+
+message Command {
+    oneof body {
+        InitCommand    init    = 1;
+        PredictCommand predict = 2;
+        TrainCommand   train   = 3;
+        ValidCommand   valid   = 4;
+        SaveCommand    save    = 5;
+        LoadCommand    load    = 6;
+    }
+}
