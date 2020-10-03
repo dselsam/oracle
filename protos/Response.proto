@@ -8,4 +8,5 @@ message Response {
     bool success = 1;
     string msg   = 2;
     repeated Prediction predictions = 3;
+    float loss  = 4;
 }

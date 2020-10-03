@@ -27,7 +27,6 @@ import qualified Data.Vector as Vector
 import qualified Data.Text as Text
 
 import qualified Proto.Protos.ChoicePoint as P
-import qualified Proto.Protos.Result as P
 import qualified Proto.Protos.Label as P
 import qualified Proto.Protos.DataPoint as P
 import qualified Proto.Protos.Command as P

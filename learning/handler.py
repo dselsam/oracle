@@ -14,6 +14,7 @@ class Handler:
         if kind == "init":        return self.handle_init(cmd.init)
         elif kind == "predict":   return self.handle_predict(cmd.predict)
         elif kind == "train":     return self.handle_train(cmd.train)
+        elif kind == "valid":     return self.handle_valid(cmd.valid)
         elif kind == "save":      return self.handle_save(cmd.save)
         elif kind == "load":      return self.handle_load(cmd.load)
         else: raise Exception("[handle] invalid cmd kind: %s" % kind)
@@ -44,6 +45,15 @@ class Handler:
         response = Response()
         response.success = False
         response.msg     = "train command not yet implemented"
+        return response
+
+    def handle_valid(self, valid_cmd):
+        # TODO(sameera): return average loss
+        # (using current model)
+        response = Response()
+        response.success = False
+        response.msg     = "valid command not yet implemented"
+        response.loss    = 0.0
         return response
 
     def handle_save(self, save_cmd):

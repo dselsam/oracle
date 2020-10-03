@@ -36,9 +36,6 @@ import Data.ProtoLens.Labels ()
 import Lens.Micro
 import Lens.Micro.Extras (view)
 import qualified Proto.Protos.Embeddable as P
-import qualified Proto.Protos.ChoicePoint as P
-import qualified Proto.Protos.Result as P
-import qualified Proto.Protos.DataPoint as P
 
 import GHC.Exts (toList)
 import qualified Data.Text as Text

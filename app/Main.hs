@@ -26,7 +26,6 @@ import Lens.Micro.Extras (view)
 
 import qualified Proto.Protos.Embeddable as P
 import qualified Proto.Protos.ChoicePoint as P
-import qualified Proto.Protos.Result as P
 import qualified Proto.Protos.DataPoint as P
 import qualified Proto.Protos.Command as P
 import qualified Proto.Protos.Response as P
