@@ -36,7 +36,7 @@ import qualified Data.Sequence as Seq
 import Data.IORef (newIORef, modifyIORef', readIORef)
 import Lens.Micro ((^.))
 import Text.Printf (printf)
-import Control.Monad (when)
+import Control.Monad (when, unless)
 import Control.Monad.State (evalStateT, execStateT)
 import Data.Foldable (for_)
 import Data.List.Split (splitOn)
@@ -109,7 +109,7 @@ genData args = do
 
   where
     runSearch :: Int -> Bool -> [BoardPair] -> IO ()
-    runSearch epoch train boards = displayConsoleRegions $ do
+    runSearch epoch train boards = unless (null boards) $ displayConsoleRegions $ do
       let nResults = length boards * length Data.searchPairs
       pg <- mkProgressBar nResults
 
@@ -141,7 +141,7 @@ genData args = do
             pure . Just . length . Trace.decisions . Result.trace . flip Seq.index 0 $ results
 
     runEpoch :: Int -> Bool -> [BoardPair] -> IO ()
-    runEpoch epoch train boards = displayConsoleRegions $ do
+    runEpoch epoch train boards = unless (null boards) $ displayConsoleRegions $ do
       let nQueries = length boards * length Data.searchPairs
       pg    <- mkProgressBar nQueries
       loss_ <- newIORef 0.0

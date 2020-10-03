@@ -14,6 +14,7 @@ class Server:
 
     def launch(self, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_address = ('localhost', port)
         print('starting up on {} port {}'.format(*server_address))
         sock.bind(server_address)

@@ -7,7 +7,7 @@ message InitCommand {
 }
 
 message PredictCommand {
-    repeated ChoicePoint choicePoints = 1;
+    repeated ChoicePoint choicepoints = 1;
 }
 
 message TrainCommand {

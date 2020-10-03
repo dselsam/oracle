@@ -3,6 +3,6 @@ import "protos/ChoicePoint.proto";
 import "protos/Label.proto";
 
 message DataPoint {
-    ChoicePoint choicePoint = 1;
+    ChoicePoint choicepoint = 1;
     Label label = 2;
 }

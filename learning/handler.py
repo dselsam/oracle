@@ -12,11 +12,12 @@ import torch.optim as optim
 def unpack_datapoint(datapoint):
     snapshot    = datapoint.choicepoint.snapshot
     choices     = datapoint.choicepoint.choices
-    label       = datapoint.label
-    return snapshot, choices, label
+    choiceIdx   = datapoint.label.choiceIdx
+    return snapshot, choices, torch.as_tensor([choiceIdx])
 
 class Handler:
     def __init__(self, cfg):
+        self.cfg       = cfg
         self.model     = GenericModel(cfg['model'])
         self.loss      = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=cfg['optim']['learning_rate'])
@@ -39,11 +40,10 @@ class Handler:
         return response
 
     def handle_predict(self, predict_cmd):
-        # TODO(sameera): map predict.choicePoints to Response.predictions
         response             = Response()
         response.success     = False
         response.msg         = "predict command not yet implemented"
-        for choicepoint in predict_cmd.choicePoints:
+        for choicepoint in predict_cmd.choicepoints:
             with torch.set_grad_enabled(False):
                 logits = self.model(choicepoint.snapshot, choicepoint.choices)
                 policy = nn.Softmax()(logits)
@@ -59,10 +59,10 @@ class Handler:
         n_steps    = 0
         for _ in range(train_cmd.nEpochs):
             for datapoint in train_cmd.datapoints:
-                snapshot, choices, label = unpack_datapoint(datapoint)
+                snapshot, choices, choiceIdx = unpack_datapoint(datapoint)
                 with torch.set_grad_enabled(True):
                     logits = self.model(snapshot, choices)
-                    loss   = self.loss(logits, label).mean()
+                    loss   = self.loss(logits, choiceIdx)
 
                 self.model.zero_grad()
                 loss.backward()
@@ -72,23 +72,23 @@ class Handler:
                 n_steps += 1
 
         response = Response()
-        response.loss    = total_loss / n_steps
+        response.loss    = total_loss / n_steps if n_steps > 0 else float('nan')
         response.success = True
         return response
 
     def handle_valid(self, valid_cmd):
         total_loss = 0.0
         n_steps    = 0
-        for datapoint in train_cmd.datapoints:
-            snapshot, choices, label = unpack_datapoint(datapoint)
+        for datapoint in valid_cmd.datapoints:
+            snapshot, choices, choiceIdx = unpack_datapoint(datapoint)
             with torch.set_grad_enabled(False):
                 logits = self.model(snapshot, choices)
-                loss   = self.loss(logits, label).mean()
+                loss   = self.loss(logits, choiceIdx)
             total_loss += loss
             n_steps += 1
 
         response = Response()
-        response.loss    = total_loss / n_steps
+        response.loss    = total_loss / n_steps if n_steps > 0 else float('nan')
         response.success = True
         return response
 
