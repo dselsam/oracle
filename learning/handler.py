@@ -48,7 +48,7 @@ class Handler:
                 logits = self.model(choicepoint.snapshot, choicepoint.choices)
                 policy = nn.Softmax()(logits)
                 prediction = Prediction()
-                prediction.policy.extend(policy)
+                prediction.policy.extend(list(policy.squeeze(0)))
                 response.predictions.append(prediction)
 
         response.success = True

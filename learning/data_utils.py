@@ -48,7 +48,6 @@ def collate_fn(batch: List[dict], pad_token_id: int):
             'choices_pad_mask': choices_pad_mask,
             }
 
-
 class EmbeddableDataset(Dataset):
     def __init__(self, text_file_path, tokenizer=str.split):
         self.data = []

@@ -1,18 +1,37 @@
 # Copyright (c) 2020 Microsoft Corporation. All rights reserved.
 # Released under Apache 2.0 license as described in the file LICENSE.
-# Authors: Sameera Lanka, Daniel Selsam
+# Authors: Jesse Michael Han, Daniel Selsam
 
 import torch
 import torch.nn as nn
+from learning.cnn import GridCNN
+from learning.protos.Embeddable_pb2 import Embeddable
+from learning.mlp import BasicMLP
+
+def grid_idx(n_rows, n_cols):
+    def idxer(idx):
+        row_idx = int(math.floor(idx/n_rows))
+        col_idx = idx % n_rows
+        return row_idx, col_idx
+    return idxer
 
 class Embedder(nn.Module):
     # TODO(sameera): this class is responsible for recursively embedding Embeddables.
     # Note: we make it a class even though it is "mostly" functional, in case we want
     # to add state, e.g. memoization for turning trees into DAGs.
-
     def __init__(self, cfg):
         super(Embedder, self).__init__()
         self.cfg = cfg
+        self.d = self.cfg["d"]
+        self.grid_cnn = GridCNN(d_in=self.d, d_out=self.d, kernel_size=5) # TODO(jesse): don't hardcode
+        self.list_lstm = nn.LSTM(input_size=self.d, hidden_size=self.d, batch_first=True)
+        self.char_embedding = nn.Embedding(256, self.d)
+        self.pair_mlp = BasicMLP(input_dim=2*self.d,
+                                       hidden_dims=[2*self.d],
+                                       output_dim=self.d,
+                                       activation="leaky_relu",
+                                       bias_at_end=True,
+                                       p_dropout=0.0)
 
     def forward(self, embeddable):
         return self.embed(embeddable)
@@ -40,25 +59,29 @@ class Embedder(nn.Module):
         raise Exception("embed_bool not yet implemented")
 
     def embed_int(self, n):
-        # TODO(sameera): not sure best approach for ints
-        # possibly just as sequence of tokens `int <digit>*`
-        raise Exception("embed_int not yet implemented")
+        return self.embed_string(str(n)) # >:(
 
-    def embed_string(self, s):
-        # TODO(sameera): build vocabulary online, possibly splitting at whitespace
-        raise Exception("embed_string not yet implemented")
+    def embed_string(self, s): # TODO(dselsam, jesse): use token level embeddings!
+        return self.embed_list_aux(s, (lambda c: self.char_embedding(ord(c))))
+
+    def embed_char(self, c):
+        return self.char_embedding(c)
 
     def embed_pair(self, pair):
-        # TODO(sameera): could treat as `record "pair" [("fst", embed pair.1), ("snd", embed pair.2)]
-        raise Exception("embed_pair not yet implemented")
+        return self.pair_mlp(torch.cat([self.embed(pair.fst), self.embed(pair.snd)], dim=-1))
 
     def embed_maybe(self, maybe):
         # TODO(sameera): baseline is vector for no-value, mlp applied to embedding of value otherwise
-        raise Exception("embed_pair not yet implemented")
+        raise Exception("embed_maybe not yet implemented")
 
-    def embed_list(self, list):
-        # TODO(sameera): LSTM
-        raise Exception("embed_list not yet implemented")
+    def embed_list_aux(self, l, f):
+        x = torch.empty(len(l), self.d)
+        for i, elem in enumerate(l):
+            x[i] = f(elem)
+        return self.list_lstm(x.unsqueeze(0)).squeeze(0)
+
+    def embed_list(self, l):
+        return self.embed_list_aux(l.elems, f=self.embed)
 
     def embed_array(self, array):
         # TODO(sameera): transformer with a reduce? 1-d convolution?
@@ -73,14 +96,24 @@ class Embedder(nn.Module):
         raise Exception("embed_map not yet implemented")
 
     def embed_grid(self, grid):
-        # TODO(sameera): CNN
-        raise Exception("embed_grid not yet implemented")
+        idxer = grid_idx(grid.n_rows, grid.n_cols)
+        g = torch.empty(grid.n_rows, grid.n_cols, self.d)
+        for idx, elem in grid.elems:
+            i,j = idxer(idx)
+            g[i,j] = self.embed(elem)
+        g = g.view(self.d, grid.n_rows, grid.n_cols)
+        return self.grid_cnn(g.unsqueeze(0)).squeeze(0)
 
     def embed_graph(self, graph):
         # TODO(sameera): GNN
         raise Exception("embed_graph not yet implemented")
 
     def embed_record(self, record):
-        # TODO(sameera): simple tree
-        # TODO(dselsam): distinguish between recursive and non-recursive records?
-        raise Exception("embed_record not yet implemented")
+        name_embedding = self.embed_string(record.name)
+        fields_embedding = self.embed_list_aux(record.fields, f=self.embed_field)
+        return self.pair_mlp(torch.cat([name_embedding, fields_embedding]))
+
+    def embed_field(self, field):
+        name_embedding = self.embed_string(field.name)
+        value_embedding = self.embed(field.value)
+        return self.pair_mlp(torch.cat([name_embedding, value_embedding], dim=-1))
