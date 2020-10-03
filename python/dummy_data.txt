@@ -1,7 +1,0 @@
-0.3 SNAPSHOT o x o e u u token5
-1.0 CHOICE a o oeu noeutnhtoneu
-0.0 CHOICE oeunte oeun oeunth
-0.0 CHOICE oeunte oeun oeunth token3 token44
-0.7 SNAPSHOT toeu oethoeun
-0.0 CHOICE token token
-1.0 CHOICE oenu oeuntoen oeunt
