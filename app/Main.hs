@@ -1,3 +1,9 @@
+{-
+Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Daniel Selsam
+-}
+
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -22,6 +28,7 @@ import qualified Proto.Protos.ChoicePoint as P
 import qualified Proto.Protos.Result as P
 import qualified Proto.Protos.DataPoint as P
 import qualified Proto.Protos.Command as P
+import qualified Proto.Protos.Response as P
 
 main :: IO ()
 main = do
@@ -39,4 +46,4 @@ main = do
     msg <- recv sock 1000
     case msg of
       Nothing -> putStrLn "recv failed"
-      Just msg -> print $ (decodeMessage msg :: Either String P.Command)
+      Just msg -> print $ (decodeMessage msg :: Either String P.Response)

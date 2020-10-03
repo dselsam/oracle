@@ -9,4 +9,5 @@ protoc --plugin=protoc-gen-haskell=`which proto-lens-protoc` \
        "$PROTOS"/ChoicePoint.proto \
        "$PROTOS"/Result.proto \
        "$PROTOS"/DataPoint.proto \
-       "$PROTOS"/Command.proto
+       "$PROTOS"/Command.proto \
+       "$PROTOS"/Response.proto \

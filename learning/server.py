@@ -1,7 +1,11 @@
+# Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+# Released under Apache 2.0 license as described in the file LICENSE.
+# Authors: Daniel Selsam
+
 import socket
 import sys
-import protos.Command_pb2 as Command
-import handler
+from learning.protos.Command_pb2 import Command
+from learning.handler import Handler
 
 class Server:
     def __init__(self, handler):
@@ -21,10 +25,10 @@ class Server:
                 print('connection from', client_address)
                 msg = connection.recv(100000)
                 print('received %d bytes' % len(msg))
-                cmd = Command.Command()
+                cmd = Command()
                 cmd.ParseFromString(msg)
-                self.handler.handle(cmd)
-                connection.sendall(cmd.SerializeToString())
+                response = self.handler.handle(cmd)
+                connection.sendall(response.SerializeToString())
             finally:
                 connection.close()
 
@@ -33,5 +37,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", action="store", dest='port', type=int, default=10000)
     opts = parser.parse_args()
-    server = Server(handler.Handler())
+    server = Server(Handler())
     server.launch(port=opts.port)
