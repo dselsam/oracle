@@ -31,7 +31,7 @@ main = do
         [("c2a", False), ("c2b", True )]
         ]
   let choicePoint :: P.ChoicePoint = defMessage & #snapshot .~ snapshot & #choices .~ choices
-  let simpleCmd :: P.Command       = defMessage & #predict .~ (defMessage & #choicepoint .~ choicePoint)
+  let simpleCmd :: P.Command       = defMessage & #predict .~ (defMessage & #choicePoints .~ [choicePoint])
 
   connect "localhost" "10000" $ \(sock, remoteAddr) -> do
     putStrLn $ "Connection established to " ++ show remoteAddr
