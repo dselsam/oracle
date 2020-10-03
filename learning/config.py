@@ -15,6 +15,6 @@ class TextEncoderConfig:
 
 @dataclass
 class TrainConfig:
-    num_epochs: int = 1
-    batch_size: int = 32
-
+    learning_rate: float = 1e-4
+    n_embed_mlp_layers: int = 2
+    n_reasoner_layers: int = 3

@@ -4,8 +4,11 @@
 
 import socket
 import sys
+import json
+
 from Command_pb2 import Command
 from handler import Handler
+
 
 class Server:
     def __init__(self, handler):
@@ -36,7 +39,11 @@ class Server:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", action="store", dest='port', type=int, default=10000)
+    parser.add_argument("--port",   action="store", dest='port',   type=int, default=10000)
+    parser.add_argument("--config", action="store", dest='config', type=str, default="learning/config.json")
+
     opts = parser.parse_args()
-    server = Server(Handler())
+    with open(opts.config, 'r') as f: cfg = json.load(f)
+
+    server = Server(Handler(cfg=cfg))
     server.launch(port=opts.port)

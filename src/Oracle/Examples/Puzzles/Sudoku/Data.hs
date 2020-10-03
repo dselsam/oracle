@@ -14,6 +14,7 @@ import Oracle.Control.Monad.Search
 
 import Oracle.Search.Decision (Decision(Decision))
 import Oracle.Search.Replay (replay)
+import qualified Oracle.Search.Sample as Search
 
 import Oracle.Data.Grid.Index (Index(Index))
 import qualified Oracle.Data.Grid.Index as Index
@@ -49,11 +50,11 @@ searchPairs = [
   SearchPair selectEmpty genStepEmpty
   ]
 
-type GenM = ReaderT Board (StateT Board IO)
+type GenM = ReaderT Board (StateT Board (SearchT Identity))
 
 genData :: BoardPair -> SearchPair -> IO [Decision]
 genData (BoardPair start end) (SearchPair fselect fgen) = do
-  choiceIdxs <- evalStateT (runReaderT (gen fgen) end) start
+  Just choiceIdxs <- Search.sample $ evalStateT (runReaderT (gen fgen) end) start
   replay (execStateT (solve fselect) start) choiceIdxs
 
 gen :: (Index -> GenM [Int]) -> GenM [Int]
@@ -61,7 +62,7 @@ gen f = Board.isFilled >>= \case
   True   -> pure []
   False  -> do
     current  <- get
-    i        <- getRandomR (0, Set.size (Board.emptys current) - 1)
+    i        <- oneOf_ [0..(Set.size (Board.emptys current) - 1)]
     let idx = Set.elemAt i (Board.emptys current)
     choices  <- f idx
     v        <- Board.readIdx idx
@@ -72,22 +73,22 @@ gen f = Board.isFilled >>= \case
 genStepRCV :: Index -> GenM [Int]
 genStepRCV idx@(Index r c) = do
   Value x  <- Board.readIdx idx
-  pure [r, c, x - 1]
+  pure [r, c, x]
 
 genStepVRC :: Index -> GenM [Int]
 genStepVRC idx@(Index r c) = do
   Value x  <- Board.readIdx idx
-  pure [x-1, r, c]
+  pure [x, r, c]
 
 genStepOIV :: Index -> GenM [Int]
 genStepOIV idx = do
   let SubgridIndex (Index oi oj) (Index ii ij) = Board.idx2subgrid idx
   Value x <- Board.readIdx idx
-  pure [oi, oj, ii, ij, x - 1]
+  pure [oi, oj, ii, ij, x]
 
 genStepEmpty :: Index -> GenM [Int]
 genStepEmpty idx = do
   emptys <- gets Board.emptys
   let i = Set.findIndex idx emptys
   Value x <- Board.readIdx idx
-  pure [i, x - 1]
+  pure [i, x]

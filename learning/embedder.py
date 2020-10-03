@@ -2,13 +2,20 @@
 # Released under Apache 2.0 license as described in the file LICENSE.
 # Authors: Sameera Lanka, Daniel Selsam
 
-class Embedder:
+import torch
+import torch.nn as nn
+
+class Embedder(nn.Module):
     # TODO(sameera): this class is responsible for recursively embedding Embeddables.
     # Note: we make it a class even though it is "mostly" functional, in case we want
     # to add state, e.g. memoization for turning trees into DAGs.
 
-    def __init__(self, opts):
-        self.opts = opts
+    def __init__(self, cfg):
+        super(Embedder, self).__init__()
+        self.cfg = cfg
+
+    def forward(self, embeddable):
+        return self.embed(embeddable)
 
     def embed(self, embeddable):
         # Input: a term of Embeddable protobuf type (<repo>/protos/Embeddable.proto)
@@ -24,7 +31,7 @@ class Embedder:
         elif kind == "set":       return self.embed_set(cmd.set)
         elif kind == "map":       return self.embed_map(cmd.map)
         elif kind == "grid":      return self.embed_grid(cmd.grid)
-        elif kind == "graph":     return self.embed_grid(cmd.graph)
+        elif kind == "graph":     return self.embed_graph(cmd.graph)
         elif kind == "record":    return self.embed_record(cmd.record)
         else: raise Exception("[embed] invalid embeddable kind: %s" % kind)
 

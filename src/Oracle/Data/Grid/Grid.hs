@@ -18,10 +18,18 @@ import qualified Oracle.Data.Grid.Dims as Dims
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 
+import qualified Data.List as List
+
 data Grid a = Grid {
   dims    :: Dims,
   elems   :: Seq a
-  } deriving (Eq, Ord, Show)
+  } deriving (Eq, Ord)
+
+
+instance Show a => Show (Grid a) where
+  show grid = "\n" ++ List.intercalate "\n" rows where
+    rows = map mkCol [0..8]
+    mkCol i = List.intercalate "|" (map (\j -> show $ get (Index i j) grid) [0..8])
 
 fromSeq :: Dims -> Seq a -> Grid a
 fromSeq dims v | Dims.nCells dims == Seq.length v = Grid dims v

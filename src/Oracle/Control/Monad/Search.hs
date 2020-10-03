@@ -40,6 +40,9 @@ choice cp cs = choice' (toEmbeddable cp) $ fmap (\(c, psi) -> (toEmbeddable c, p
 oneOf :: (MonadSearch m, HasToEmbeddable cp, HasToEmbeddable c) => cp -> [(c, a)] -> m a
 oneOf cp cs = choice cp (fmap (\(c, x) -> (c, pure x)) cs)
 
+oneOf_ :: (MonadSearch m) => [a] -> m a
+oneOf_ cs = oneOf () (map (\c -> ((), c)) cs)
+
 oneOfSelf :: (MonadSearch m, HasToEmbeddable cp, HasToEmbeddable c) => cp -> [c] -> m c
 oneOfSelf cp cs = oneOf cp (fmap (\c -> (c, c)) cs)
 

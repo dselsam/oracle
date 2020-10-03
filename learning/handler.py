@@ -3,11 +3,12 @@
 # Authors: Daniel Selsam
 
 from learning.protos.Response_pb2 import Response, Prediction
+from model import GenericModel
 
 class Handler:
-    def __init__(self):
+    def __init__(self, cfg):
         # TODO(sameera): store model (+ friends) here
-        pass
+        self.model = GenericModel(cfg['model'])
 
     def handle(self, cmd):
         kind = cmd.WhichOneof("body")
@@ -40,11 +41,12 @@ class Handler:
         return response
 
     def handle_train(self, train_cmd):
-        # TODO(sameera): train train_cmd.nEpochs epochs on train_cmd.datapoints
+        # TODO(sameera): train train_cmd.nEpochs epochs on train_cmd.datapoints, return average loss
         # (using current model)
         response = Response()
         response.success = False
         response.msg     = "train command not yet implemented"
+        response.loss    = 0.0
         return response
 
     def handle_valid(self, valid_cmd):
