@@ -1,8 +1,8 @@
 syntax="proto3";
 import "protos/ChoicePoint.proto";
-import "protos/Result.proto";
+import "protos/Label.proto";
 
 message DataPoint {
-    ChoicePoint choice_point = 1;
-    Result result = 2;
+    ChoicePoint choicePoint = 1;
+    Label label = 2;
 }

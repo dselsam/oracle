@@ -48,5 +48,5 @@ replay f idxs = core f idxs [] where
       [] -> error $ "[replay] no more indices: " ++ show cp
       (idx:idxs) -> do
         let k = snd $ cs Vector.! idx
-        let decision = Decision cp (fmap fst cs) idx 0.0
+        let decision = Decision cp (fmap fst cs) idx
         core k idxs (decision:decisions)

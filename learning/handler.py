@@ -3,6 +3,7 @@
 # Authors: Daniel Selsam
 
 from learning.protos.Response_pb2 import Response
+from learning.protos.Result_pb2 import Result
 
 class Handler:
     def __init__(self):
@@ -27,9 +28,15 @@ class Handler:
 
     def handle_predict(self, predict_cmd):
         # TODO(sameera): map predict.choicePoints to Response.predictions
-        response = Response()
-        response.success = False
-        response.msg     = "predict command not yet implemented"
+        response             = Response()
+        response.success     = False
+        response.msg         = "predict command not yet implemented"
+        for choicePoint in predict_cmd.choicePoints:
+            # TODO(dselsam): change name to prediction
+            result = Result()
+            denom = len(choicePoint.choices)
+            result.policy.extend([1.0 / denom for _ in choicePoint.choices])
+            response.predictions.append(result)
         return response
 
     def handle_train(self, train_cmd):

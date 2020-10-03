@@ -11,8 +11,7 @@ import Oracle.Data.Embeddable
 import Data.Vector (Vector)
 
 data Decision = Decision {
-  snapshot  :: Embeddable,
-  choices   :: Vector Embeddable,
-  choiceIdx :: Int,
-  score     :: Float
+  snapshot   :: Embeddable,
+  choices    :: Vector Embeddable,
+  choiceIdx  :: Int -- TODO(dselsam): add nStepsAway?
   } deriving (Eq, Ord, Show)

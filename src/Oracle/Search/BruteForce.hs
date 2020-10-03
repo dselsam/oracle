@@ -64,7 +64,6 @@ bruteForceSearch opts psi = flip evalStateT s0 $ flip runReaderT opts $ search (
     Nothing -> gets results
 
     Just (Task (SearchT k) trace, rest) -> do
-      -- traceM $ "[search] " ++ (show $ reverse $ map (\(Decision _ cs i _) -> Seq.index cs i) $ Trace.decisions trace)
       modify $ \s -> s { tasks = rest }
       (lift . lift $ k) >>= \case
         Fail -> search (fuel-1)
@@ -76,7 +75,7 @@ bruteForceSearch opts psi = flip evalStateT s0 $ flip runReaderT opts $ search (
         Choice (ChoicePoint cp cs) -> do
           for_ [1..Vector.length cs] $ \i' -> do
             i <- asks searchAlg >>= \case DepthFirst -> pure $ Vector.length cs - i'; BreadthFirst -> pure $ i' - 1
-            let task = Task (snd $ cs Vector.! i) $ Trace $ (Decision cp (fmap fst cs) i) 0.0 : Trace.decisions trace
+            let task = Task (snd $ cs Vector.! i) $ Trace $ (Decision cp (fmap fst cs) i) : Trace.decisions trace
             side <- asks searchAlg >>= \case
               BreadthFirst -> pure Deque.Back
               DepthFirst   -> pure Deque.Front

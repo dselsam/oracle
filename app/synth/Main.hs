@@ -260,6 +260,6 @@ main = do
     let spec  = ESpec info (bools, ints) (TTS.train $ fromJust dOutput)
     let answer = runIdentity $ Search.replay (Synth.decisionTreeNaive (synthFuel args) (Synth.ints2int $ synthFuel args) spec) choices
 
-    for_ answer $ \(Decision snapshot choices choiceIdx _) -> do
+    for_ answer $ \(Decision snapshot choices choiceIdx) -> do
       for_ (zip [0..] (toList choices)) $ \(i, choice) -> do
         S2S.appendTokensToFile (trainFilename args) $ Seq.fromList [if i == choiceIdx then "T" else "F", "SNAPSHOT"] >< S2S.embed snapshot >< Seq.singleton "CHOICE" >< S2S.embed choice

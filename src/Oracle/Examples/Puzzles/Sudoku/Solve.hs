@@ -20,11 +20,10 @@ import qualified Oracle.Data.Grid.Index as Index
 import Oracle.Examples.Puzzles.Sudoku.Board (Board(Board), Value(Value), SubgridIndex(SubgridIndex))
 import qualified Oracle.Examples.Puzzles.Sudoku.Board as Board
 import Control.Monad.State (StateT, runStateT, get, gets, put, modify)
-import Control.Monad.Identity (Identity, runIdentity)
 
 import qualified Data.Set as Set
 
-type SolveM = StateT Board (SearchT Identity)
+type SolveM = StateT Board (SearchT IO)
 
 solve :: SolveM () -> SolveM ()
 solve f = Board.isFilled >>= \case

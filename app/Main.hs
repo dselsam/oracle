@@ -18,6 +18,7 @@ import Data.ByteString.UTF8 as BSU
 import Network.Simple.TCP
 import System.IO
 
+
 import Data.ProtoLens (defMessage, encodeMessage, decodeMessage)
 import Data.ProtoLens.Labels ()
 import Lens.Micro

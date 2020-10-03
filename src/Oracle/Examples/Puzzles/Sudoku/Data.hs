@@ -54,7 +54,7 @@ type GenM = ReaderT Board (StateT Board IO)
 genData :: BoardPair -> SearchPair -> IO [Decision]
 genData (BoardPair start end) (SearchPair fselect fgen) = do
   choiceIdxs <- evalStateT (runReaderT (gen fgen) end) start
-  pure . runIdentity $ replay (execStateT (solve fselect) start) choiceIdxs
+  replay (execStateT (solve fselect) start) choiceIdxs
 
 gen :: (Index -> GenM [Int]) -> GenM [Int]
 gen f = Board.isFilled >>= \case

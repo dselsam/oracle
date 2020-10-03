@@ -1,6 +1,5 @@
 syntax="proto3";
 
 message Result {
-    float value = 1;
     repeated float policy = 2;
 }

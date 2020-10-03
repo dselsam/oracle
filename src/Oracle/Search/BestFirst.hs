@@ -80,6 +80,6 @@ bestFirstSearch opts oracle psi = flip evalStateT s0 $ flip runReaderT opts $ se
             let i = Vector.length cs - i'
             let p = pi Vector.! i
             let newCumLogProb = cumLogProb + log p
-            let task = Task (snd $ cs Vector.! i) $ Trace $ (Decision snap (fmap fst cs) i p) : Trace.decisions trace
+            let task = Task (snd $ cs Vector.! i) $ Trace $ (Decision snap (fmap fst cs) i) : Trace.decisions trace
             modify $ \s -> s { tasks = PQ.insert newCumLogProb task (tasks s) }
           search (fuel-1)
