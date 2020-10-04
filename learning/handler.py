@@ -3,11 +3,19 @@
 # Authors: Daniel Selsam
 
 from learning.protos.Response_pb2 import Response, Prediction
-from model import GenericModel
+from learning.model import GenericModel
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
+def count_params(model):
+    count = 0
+    params = list(model.parameters())
+    for p in params:
+        if p.requires_grad:
+            count += p.numel()
+    return count
 
 def unpack_datapoint(datapoint):
     snapshot    = datapoint.choicepoint.snapshot
@@ -19,6 +27,11 @@ class Handler:
     def __init__(self, cfg):
         self.cfg       = cfg
         self.model     = GenericModel(cfg['model'])
+        rhs = count_params(self.model.reasoner) + count_params(self.model.embedder)
+        print("RHS", rhs)
+        assert count_params(self.model) == rhs
+        assert count_params(self.model.embedder) == sum([count_params(m) for m in [self.model.embedder.grid_cnn, self.model.embedder.list_lstm, self.model.embedder.char_embedding, self.model.embedder.pair_mlp]])
+        assert count_params(self.model.reasoner) == count_params(self.model.reasoner.mlp)
         self.loss      = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=cfg['optim']['learning_rate'])
 
@@ -46,7 +59,7 @@ class Handler:
         for choicepoint in predict_cmd.choicepoints:
             with torch.set_grad_enabled(False):
                 logits = self.model(choicepoint.snapshot, choicepoint.choices)
-                policy = nn.Softmax()(logits)
+                policy = nn.functional.softmax(logits, dim=-1)
                 prediction = Prediction()
                 prediction.policy.extend(list(policy.squeeze(0)))
                 response.predictions.append(prediction)

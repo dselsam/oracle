@@ -18,9 +18,7 @@ class Server:
         server_address = ('localhost', port)
         print('starting up on {} port {}'.format(*server_address))
         sock.bind(server_address)
-
         sock.listen(1)
-
         while True:
             connection, client_address = sock.accept()
             try:
