@@ -8,6 +8,7 @@
         },
 
         "reasoner" : {
+            "d" : 16,
             "n_layers" : 3
         }
     },
