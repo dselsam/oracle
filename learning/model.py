@@ -24,8 +24,9 @@ class GenericModel(nn.Module):
         self.add_module("tmp_linear", self.tmp_linear)
 
     def forward(self, snapshot, choices):
-        # TODO(jesse):
-        #   - pipe embedder into reasoner
-        # e_snapshot  = self.embedder(snapshot)
-        # e_choices   = self.embedder(choices)
-        return self.tmp_linear(torch.as_tensor([1.0])).repeat((1, len(choices)))
+        snapshot_embedding = self.embedder(snapshot)
+        choices_embedding = torch.empty(len(choices), self.embedder.d)
+        for i, choice in enumerate(choices):
+            choices_embedding[i] = self.embedder(choice)            
+        # reasoner is responsible for tiling snapshot and concatenating
+        return self.reasoner(snapshot_embedding, choices_embedding)
