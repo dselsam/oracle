@@ -1,6 +1,6 @@
 syntax="proto3";
-import "ChoicePoint.proto";
-import "Label.proto";
+import "protos/ChoicePoint.proto";
+import "protos/Label.proto";
 
 message DataPoint {
     ChoicePoint choicePoint = 1;

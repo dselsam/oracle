@@ -1,6 +1,6 @@
 syntax="proto3";
-import "ChoicePoint.proto";
-import "DataPoint.proto";
+import "protos/ChoicePoint.proto";
+import "protos/DataPoint.proto";
 
 
 message InitCommand {

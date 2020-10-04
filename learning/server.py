@@ -6,7 +6,7 @@ import socket
 import sys
 import json
 
-from Command_pb2 import Command
+from protos.Command_pb2 import Command
 from handler import Handler
 
 
