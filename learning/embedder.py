@@ -4,6 +4,7 @@
 
 import torch
 import torch.nn as nn
+import math
 from learning.cnn import GridCNN
 from learning.protos.Embeddable_pb2 import Embeddable
 from learning.mlp import BasicMLP
@@ -32,6 +33,7 @@ class Embedder(nn.Module):
                                        activation="leaky_relu",
                                        bias_at_end=True,
                                        p_dropout=0.0)
+        self.list_nil = torch.nn.Parameter(torch.nn.init.xavier_normal_(torch.empty([1,self.d])), requires_grad=True).view(self.d)
 
     def forward(self, embeddable):
         return self.embed(embeddable)
@@ -40,19 +42,31 @@ class Embedder(nn.Module):
         # Input: a term of Embeddable protobuf type (<repo>/protos/Embeddable.proto)
         # Output: a fixed dimensional embedding
         kind = embeddable.WhichOneof("body")
-        if kind == "b":           return self.embed_bool(cmd.b)
-        elif kind == "n":         return self.embed_int(cmd.n)
-        elif kind == "s":         return self.embed_string(cmd.s)
-        elif kind == "pair":      return self.embed_pair(cmd.pair)
-        elif kind == "maybe":     return self.embed_maybe(cmd.maybe)
-        elif kind == "lst":       return self.embed_list(cmd.list)
-        elif kind == "array":     return self.embed_array(cmd.array)
-        elif kind == "set":       return self.embed_set(cmd.set)
-        elif kind == "map":       return self.embed_map(cmd.map)
-        elif kind == "grid":      return self.embed_grid(cmd.grid)
-        elif kind == "graph":     return self.embed_graph(cmd.graph)
-        elif kind == "record":    return self.embed_record(cmd.record)
+        if kind == "b":           result = self.embed_bool(embeddable.b)
+        elif kind == "char":      result = self.embed_char(embeddable.char)        
+        elif kind == "n":         result = self.embed_int(embeddable.n)
+        elif kind == "s":         result = self.embed_string(embeddable.s)
+        elif kind == "pair":      result = self.embed_pair(embeddable.pair)
+        elif kind == "maybe":     result = self.embed_maybe(embeddable.maybe)
+        elif kind == "list":      result = self.embed_list(embeddable.list)
+        elif kind == "array":     result = self.embed_array(embeddable.array)
+        elif kind == "set":       result = self.embed_set(embeddable.set)
+        elif kind == "map":       result = self.embed_map(embeddable.map)
+        elif kind == "grid":      result = self.embed_grid(embeddable.grid)
+        elif kind == "graph":     result = self.embed_graph(embeddable.graph)
+        elif kind == "record":    result = self.embed_record(embeddable.record)
         else: raise Exception("[embed] invalid embeddable kind: %s" % kind)
+
+        # result = result.view(self.d) # TODO(jesse): temp fix, rm later
+        try:
+            assert result.size(0) == self.d
+            assert len(result.size()) == 1
+        except AssertionError as e:
+            print("BAD RESULT: ", result)
+            print("BAD RESULT SIZE: ", result.size())
+            print("BAD RESULT EMBEDDABLE KIND: ", kind)
+            raise e
+        return result
 
     def embed_bool(self, b):
         # TODO(sameera): one vector for False, one for True
@@ -61,11 +75,12 @@ class Embedder(nn.Module):
     def embed_int(self, n):
         return self.embed_string(str(n)) # >:(
 
-    def embed_string(self, s): # TODO(dselsam, jesse): use token level embeddings!
-        return self.embed_list_aux(s, (lambda c: self.char_embedding(ord(c))))
+    def embed_string(self, s):
+        # TODO(dselsam, jesse): use token level embeddings!
+        return self.embed_list_aux(s, (lambda c: self.char_embedding(torch.as_tensor([ord(c)]))))
 
     def embed_char(self, c):
-        return self.char_embedding(c)
+        return self.char_embedding(torch.as_tensor(c))
 
     def embed_pair(self, pair):
         return self.pair_mlp(torch.cat([self.embed(pair.fst), self.embed(pair.snd)], dim=-1))
@@ -75,10 +90,13 @@ class Embedder(nn.Module):
         raise Exception("embed_maybe not yet implemented")
 
     def embed_list_aux(self, l, f):
+        if len(l) == 0:
+            return self.list_nil
+        
         x = torch.empty(len(l), self.d)
         for i, elem in enumerate(l):
             x[i] = f(elem)
-        return self.list_lstm(x.unsqueeze(0)).squeeze(0)
+        return self.list_lstm(x.unsqueeze(0))[1][0].squeeze(0).squeeze(0)
 
     def embed_list(self, l):
         return self.embed_list_aux(l.elems, f=self.embed)
@@ -96,24 +114,24 @@ class Embedder(nn.Module):
         raise Exception("embed_map not yet implemented")
 
     def embed_grid(self, grid):
-        idxer = grid_idx(grid.n_rows, grid.n_cols)
-        g = torch.empty(grid.n_rows, grid.n_cols, self.d)
-        for idx, elem in grid.elems:
+        idxer = grid_idx(grid.nRows, grid.nCols)
+        g = torch.empty(grid.nRows, grid.nCols, self.d)
+        for idx, elem in enumerate(grid.elems):
             i,j = idxer(idx)
             g[i,j] = self.embed(elem)
-        g = g.view(self.d, grid.n_rows, grid.n_cols)
-        return self.grid_cnn(g.unsqueeze(0)).squeeze(0)
+        g = g.view(self.d, grid.nRows, grid.nCols)
+        return self.grid_cnn(g.unsqueeze(0)).view(self.d)
 
     def embed_graph(self, graph):
         # TODO(sameera): GNN
         raise Exception("embed_graph not yet implemented")
 
     def embed_record(self, record):
-        name_embedding = self.embed_string(record.name)
+        name_embedding   = self.embed_string(record.name)
         fields_embedding = self.embed_list_aux(record.fields, f=self.embed_field)
-        return self.pair_mlp(torch.cat([name_embedding, fields_embedding]))
+        return self.pair_mlp(torch.cat([name_embedding, fields_embedding], dim=-1))
 
     def embed_field(self, field):
-        name_embedding = self.embed_string(field.name)
+        name_embedding  = self.embed_string(field.name)
         value_embedding = self.embed(field.value)
         return self.pair_mlp(torch.cat([name_embedding, value_embedding], dim=-1))

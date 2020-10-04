@@ -22,7 +22,8 @@ import qualified Oracle.Data.Grid.Index as Index
 import Oracle.Examples.Puzzles.Sudoku.Board (Board(Board), Value(Value), SubgridIndex(SubgridIndex))
 import qualified Oracle.Examples.Puzzles.Sudoku.Board as Board
 
-import Oracle.Examples.Puzzles.Sudoku.Solve (SolveM, solve, selectRCV, selectVRC, selectOIV, selectEmpty)
+import Oracle.Examples.Puzzles.Sudoku.Solve (SolveM, solve, selectRCV, -- selectVRC, selectOIV, selectEmpty
+                                            )
 
 import Control.Monad.Trans (liftIO)
 import Control.Monad.Reader (ReaderT, runReaderT, ask, asks)
@@ -44,11 +45,11 @@ data SearchPair = SearchPair {
 
 searchPairs :: [SearchPair]
 searchPairs = [
-  SearchPair selectRCV   genStepRCV,
-  SearchPair selectVRC   genStepVRC,
-  SearchPair selectOIV   genStepOIV,
-  SearchPair selectEmpty genStepEmpty
-  ]
+  SearchPair selectRCV   genStepRCV]
+  -- SearchPair selectVRC   genStepVRC,
+  -- SearchPair selectOIV   genStepOIV,
+  -- SearchPair selectEmpty genStepEmpty
+
 
 type GenM = ReaderT Board (StateT Board (SearchT Identity))
 

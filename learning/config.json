@@ -1,19 +1,20 @@
 {
     "model" : {
         "embedder" : {
-            "d"     : 16,
+            "d"     : 128,
             "int"   : {},
             "graph" : { "n_rounds" : 3 },
             "grid"  : {}
         },
 
         "reasoner" : {
+            "d" : 128,
             "n_layers" : 3
         }
     },
 
     "optim" : {
-        "learning_rate"  : 1e-4,
+        "learning_rate"  : 3e-4,
         "grad_norm_clip" : 1.0
     }
 }
