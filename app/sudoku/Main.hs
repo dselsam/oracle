@@ -52,6 +52,7 @@ import qualified Proto.Protos.Response_Fields as Response
 import qualified Proto.Protos.Response_Fields as Prediction
 
 data Args = Args {
+  genDataFlag    :: Bool,
   interactive    :: Bool,
   problemIdx     :: Int,
   selectIdx      :: Int,
@@ -72,6 +73,7 @@ data Args = Args {
 
 defaultArgs :: Args
 defaultArgs = Args {
+  genDataFlag      = False &= name "genData",
   interactive      = False &= name "interactive",
   problemIdx       = 0 &= name "problemIdx",
   selectIdx        = 0 &= name "selectIdx",
@@ -206,7 +208,6 @@ main :: IO ()
 main = do
   putStrLn "-- Sudoku --"
   args <- cmdArgs defaultArgs
-  case () of
-    _
-      | interactive args -> solveInteractive args
-      | otherwise        -> genData args
+  when (genDataFlag args) $ genData args
+  when (interactive args) $ solveInteractive args
+

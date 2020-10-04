@@ -12,7 +12,7 @@ class Reasoner(nn.Module):
         self.cfg = cfg
         self.mlp = BasicMLP(input_dim=2*cfg["d"],
                             hidden_dims=[2*cfg["d"] for _ in range(cfg["n_layers"])],
-                            output_dim=cfg["d"],
+                            output_dim=1,
                             activation="leaky_relu",
                             bias_at_end=True,
                             p_dropout=0.0)
@@ -22,4 +22,5 @@ class Reasoner(nn.Module):
         # choices :: R^{ncxd}
         snapshot = snapshot.unsqueeze(0).repeat(len(choices), 1)
         x = torch.cat([snapshot, choices], dim=-1)
-        return self.mlp(x)
+        result = self.mlp(x)
+        return result.view(1, len(choices))

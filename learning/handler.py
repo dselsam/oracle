@@ -3,11 +3,19 @@
 # Authors: Daniel Selsam
 
 from learning.protos.Response_pb2 import Response, Prediction
-from model import GenericModel
+from learning.model import GenericModel
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
+def count_params(model):
+    count = 0
+    params = list(model.parameters())
+    for p in params:
+        if p.requires_grad:
+            count += p.numel()
+    return count
 
 def unpack_datapoint(datapoint):
     snapshot    = datapoint.choicepoint.snapshot
@@ -33,7 +41,7 @@ class Handler:
         else: raise Exception("[handle] invalid cmd kind: %s" % kind)
 
     def handle_init(self, init_cmd):
-        # TODO(sameera): re-initialize model (+ friends)
+        # TODO: re-initialize model (+ friends)
         response = Response()
         response.success = False
         response.msg     = "init command not yet implemented"
@@ -46,7 +54,7 @@ class Handler:
         for choicepoint in predict_cmd.choicepoints:
             with torch.set_grad_enabled(False):
                 logits = self.model(choicepoint.snapshot, choicepoint.choices)
-                policy = nn.Softmax()(logits)
+                policy = nn.functional.softmax(logits, dim=-1)
                 prediction = Prediction()
                 prediction.policy.extend(list(policy.squeeze(0)))
                 response.predictions.append(prediction)
@@ -93,14 +101,14 @@ class Handler:
         return response
 
     def handle_save(self, save_cmd):
-        # TODO(sameera): store all relevant data to save_cmd.filename
+        # TODO: store all relevant data to save_cmd.filename
         response = Response()
         response.msg     = "save command not yet implemented"
         response.success = False
         return response
 
     def handle_load(self, load_cmd):
-        # TODO(sameera): load all relevant data to load_cmd.filename
+        # TODO: load all relevant data to load_cmd.filename
         response = Response()
         response.msg     = "load command not yet implemented"
         response.success = False

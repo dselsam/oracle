@@ -77,8 +77,8 @@ instance HasToEmbeddable Char where
 instance HasToEmbeddable Int where
   toEmbeddable = EInt
 
-instance {-# OVERLAPS #-} HasToEmbeddable String where
-  toEmbeddable = EString
+-- instance {-# OVERLAPS #-} HasToEmbeddable String where
+--   toEmbeddable = EString
 
 instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (a, b) where
   toEmbeddable (a, b) = EPair (toEmbeddable a, toEmbeddable b)

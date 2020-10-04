@@ -14,7 +14,7 @@
     },
 
     "optim" : {
-        "learning_rate"  : 1e-4,
+        "learning_rate"  : 3e-4,
         "grad_norm_clip" : 1.0
     }
 }
