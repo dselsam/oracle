@@ -44,17 +44,7 @@ library:
   source-dirs: src
 
 executables:
-  oracle-exe:
-    main:                Main.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - oracle
-
-  synth-exe:
+  synth:
     main:                Main.hs
     source-dirs:         app/synth
     ghc-options:

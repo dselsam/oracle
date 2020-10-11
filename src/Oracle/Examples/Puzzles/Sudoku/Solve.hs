@@ -32,35 +32,35 @@ solve f = Board.isFilled >>= \case
 
 selectRCV :: SolveM ()
 selectRCV = do
-  i <- select "row" [0..8]
-  j <- select "col" [0..8]
-  x <- select "val" $ map Value [0..9]
+  i <- select ("row", ([] :: [(String, Int)])) [0..8]
+  j <- select ("col", [("row", i)]) [0..8]
+  x <- select ("val", [("col", j), ("row", i)]) $ map Value [0..9]
   Board.set (Index i j) x
 
-selectVRC :: SolveM ()
-selectVRC = do
-  x <- select "val" $ map Value [0..9]
-  i <- select "row" [0..8]
-  j <- select "col" [0..8]
-  Board.set (Index i j) x
+-- selectVRC :: SolveM ()
+-- selectVRC = do
+--   x <- select ("val", []) $ map Value [0..9]
+--   i <- select ("row", [("val", x)]) [0..8]
+--   j <- select ("col", [("row", i), ("val", x)]) [0..8]
+--   Board.set (Index i j) x
 
-selectOIV :: SolveM ()
-selectOIV = do
-  oi <- select "outer row" [0..2]
-  oj <- select "outer col" [0..2]
-  ii <- select "inner row" [0..2]
-  ij <- select "inner col" [0..2]
-  x  <- select "val"       $ map Value [0..9]
-  Board.set (Board.subgrid2idx (SubgridIndex (Index oi oj) (Index ii ij))) x
+-- selectOIV :: SolveM ()
+-- selectOIV = do
+--   oi <- select "outer row" [0..2]
+--   oj <- select "outer col" [0..2]
+--   ii <- select "inner row" [0..2]
+--   ij <- select "inner col" [0..2]
+--   x  <- select "val"       $ map Value [0..9]
+--   Board.set (Board.subgrid2idx (SubgridIndex (Index oi oj) (Index ii ij))) x
 
-selectEmpty :: SolveM ()
-selectEmpty = do
-  emptys <- gets Board.emptys
-  idx   <- select "index" (Set.toList emptys)
-  x     <- select "val" $ map Value [0..9]
-  Board.set idx x
+-- selectEmpty :: SolveM ()
+-- selectEmpty = do
+--   emptys <- gets Board.emptys
+--   idx   <- select "index" (Set.toList emptys)
+--   x     <- select "val" $ map Value [0..9]
+--   Board.set idx x
 
-select :: (HasToEmbeddable a) => String -> [a] -> SolveM a
+select :: (HasToEmbeddable a, HasToEmbeddable b) => b -> [a] -> SolveM a
 select n xs = do
   board <- get
-  oneOf (Attrs n [("board", toEmbeddable board)]) $ map (\x -> (x, x)) xs
+  oneOf (n, [("board", board)]) $ map (\x -> (x, x)) xs

@@ -16,6 +16,9 @@ class GenericModel(nn.Module):
         self.reasoner = Reasoner(cfg['reasoner'])
 
     def forward(self, snapshot, choices):
-        # TODO(jesse):
-        #   - pipe embedder into reasoner
-        raise Exception("GenericModel.forward not yet implemented")
+        snapshot_embedding = self.embedder(snapshot)
+        choices_embedding = torch.empty(len(choices), self.embedder.d)
+        for i, choice in enumerate(choices):
+            choices_embedding[i] = self.embedder(choice)            
+        # reasoner is responsible for tiling snapshot and concatenating
+        return self.reasoner(snapshot_embedding, choices_embedding)

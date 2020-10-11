@@ -36,7 +36,7 @@ import qualified Data.Sequence as Seq
 import Data.IORef (newIORef, modifyIORef', readIORef)
 import Lens.Micro ((^.))
 import Text.Printf (printf)
-import Control.Monad (when)
+import Control.Monad (when, unless)
 import Control.Monad.State (evalStateT, execStateT)
 import Data.Foldable (for_)
 import Data.List.Split (splitOn)
@@ -53,6 +53,7 @@ import qualified Proto.Response_Fields as Prediction
 
 
 data Args = Args {
+  genDataFlag    :: Bool,
   interactive    :: Bool,
   problemIdx     :: Int,
   selectIdx      :: Int,
@@ -73,6 +74,7 @@ data Args = Args {
 
 defaultArgs :: Args
 defaultArgs = Args {
+  genDataFlag      = False &= name "genData",
   interactive      = False &= name "interactive",
   problemIdx       = 0 &= name "problemIdx",
   selectIdx        = 0 &= name "selectIdx",
@@ -110,7 +112,7 @@ genData args = do
 
   where
     runSearch :: Int -> Bool -> [BoardPair] -> IO ()
-    runSearch epoch train boards = displayConsoleRegions $ do
+    runSearch epoch train boards = unless (null boards) $ displayConsoleRegions $ do
       let nResults = length boards * length Data.searchPairs
       pg <- mkProgressBar nResults
 
@@ -142,7 +144,7 @@ genData args = do
             pure . Just . length . Trace.decisions . Result.trace . flip Seq.index 0 $ results
 
     runEpoch :: Int -> Bool -> [BoardPair] -> IO ()
-    runEpoch epoch train boards = displayConsoleRegions $ do
+    runEpoch epoch train boards = unless (null boards) $ displayConsoleRegions $ do
       let nQueries = length boards * length Data.searchPairs
       pg    <- mkProgressBar nQueries
       loss_ <- newIORef 0.0
@@ -207,7 +209,6 @@ main :: IO ()
 main = do
   putStrLn "-- Sudoku --"
   args <- cmdArgs defaultArgs
-  case () of
-    _
-      | interactive args -> solveInteractive args
-      | otherwise        -> genData args
+  when (genDataFlag args) $ genData args
+  when (interactive args) $ solveInteractive args
+

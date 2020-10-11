@@ -5,7 +5,6 @@
 import socket
 import sys
 import json
-
 from protos.Command_pb2 import Command
 from handler import Handler
 
@@ -16,12 +15,11 @@ class Server:
 
     def launch(self, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_address = ('localhost', port)
         print('starting up on {} port {}'.format(*server_address))
         sock.bind(server_address)
-
         sock.listen(1)
-
         while True:
             connection, client_address = sock.accept()
             try:

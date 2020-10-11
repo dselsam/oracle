@@ -20,6 +20,7 @@ import qualified Oracle.Data.Grid as Grid
 
 import Data.Sequence (Seq)
 
+import qualified Data.Char as Char
 import Data.Set (Set)
 import qualified Data.Set as Set
 
@@ -46,6 +47,7 @@ import qualified Oracle.Data.Graph as Graph
 data Embeddable =
   EUnit ()
   | EBool Bool
+  | EChar Char
   | EInt Int
   | EString String
   | EPair (Embeddable, Embeddable)
@@ -69,11 +71,14 @@ instance HasToEmbeddable () where
 instance HasToEmbeddable Bool where
   toEmbeddable = EBool
 
+instance HasToEmbeddable Char where
+  toEmbeddable = EChar
+
 instance HasToEmbeddable Int where
   toEmbeddable = EInt
 
-instance {-# OVERLAPS #-} HasToEmbeddable String where
-  toEmbeddable = EString
+-- instance {-# OVERLAPS #-} HasToEmbeddable String where
+--   toEmbeddable = EString
 
 instance (HasToEmbeddable a, HasToEmbeddable b) => HasToEmbeddable (a, b) where
   toEmbeddable (a, b) = EPair (toEmbeddable a, toEmbeddable b)
@@ -116,6 +121,7 @@ instance HasToEmbeddable Attrs where
 toProto :: Embeddable -> P.Embeddable
 toProto x = case x of
   EBool b           -> defMessage & #b .~ b
+  EChar c           -> defMessage & #char .~ (fromIntegral $ Char.ord c)
   EInt n            -> defMessage & #n .~ fromIntegral n
   EString s         -> defMessage & #s .~ Text.pack s
   EMaybe m          -> defMessage & #maybe .~ maybe2proto m

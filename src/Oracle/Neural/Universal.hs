@@ -38,7 +38,7 @@ init = defMessage & #init .~ defMessage
 predict :: [ChoicePoint m a] -> P.Command
 predict choicePoints = defMessage
   & #predict .~ (defMessage
-                 & #choicePoints .~ (flip map choicePoints $ \(ChoicePoint snap cs) ->
+                 & #choicepoints .~ (flip map choicePoints $ \(ChoicePoint snap cs) ->
                                         defMessage
                                         & #snapshot .~ Embeddable.toProto snap
                                         & #choices  .~ map (Embeddable.toProto . fst) (Vector.toList cs)))
@@ -57,7 +57,7 @@ valid decisions = defMessage
 decisions2datapoints :: [Decision] -> [P.DataPoint]
 decisions2datapoints decisions = flip map decisions $ \(Decision snap choices choiceIdx) ->
   defMessage
-  & #choicePoint .~ (defMessage
+  & #choicepoint .~ (defMessage
                       & #snapshot .~ Embeddable.toProto snap
                       & #choices  .~ Vector.toList (fmap Embeddable.toProto choices))
   & #label .~ (defMessage
