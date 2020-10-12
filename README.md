@@ -10,6 +10,5 @@ See [recent talk](https://www.youtube.com/watch?v=GtAo8wqWHHg) for overview and 
 - Install [Protocol buffers](https://developers.google.com/protocol-buffers)
 - Install [proto-lens](https://github.com/google/proto-lens)
   - `stack install proto-lens-protoc`
-  - TODO(dselsam): confirm this is the only variant that needs to be installed
 - Bash script to compile the protocol buffers: `protos/build_protos.sh`
-- `python3-pip` requirements for learning: `python/requirements.txt`
+- `python3-pip` requirements for learning: `learning/requirements.txt`
