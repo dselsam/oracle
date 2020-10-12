@@ -5,9 +5,9 @@
 import torch
 import torch.nn as nn
 import math
-from learning.cnn import GridCNN
-from learning.protos.Embeddable_pb2 import Embeddable
-from learning.mlp import BasicMLP
+from cnn import GridCNN
+from protos.Embeddable_pb2 import Embeddable
+from mlp import BasicMLP
 
 def grid_idx(n_rows, n_cols):
     def idxer(idx):

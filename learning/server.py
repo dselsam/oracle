@@ -5,8 +5,8 @@
 import socket
 import sys
 import json
-from learning.handler import Handler
-from learning.protos.Command_pb2 import Command
+from handler import Handler
+from protos.Command_pb2 import Command
 
 class Server:
     def __init__(self, handler):

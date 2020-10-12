@@ -2,8 +2,8 @@
 # Released under Apache 2.0 license as described in the file LICENSE.
 # Authors: Daniel Selsam
 
-from learning.protos.Response_pb2 import Response, Prediction
-from learning.model import GenericModel
+from protos.Response_pb2 import Response, Prediction
+from model import GenericModel
 
 import torch
 import torch.nn as nn
