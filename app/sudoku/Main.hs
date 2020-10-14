@@ -46,10 +46,10 @@ import qualified Data.List as List
 import System.Console.Regions (displayConsoleRegions)
 import qualified System.Console.AsciiProgress as Progress
 
-import qualified Proto.Command as P
-import qualified Proto.Response as P
-import qualified Proto.Response_Fields as Response
-import qualified Proto.Response_Fields as Prediction
+import qualified Proto.Protos.Command as P
+import qualified Proto.Protos.Response as P
+import qualified Proto.Protos.Response_Fields as Response
+import qualified Proto.Protos.Response_Fields as Prediction
 
 
 data Args = Args {

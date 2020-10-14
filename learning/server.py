@@ -3,10 +3,9 @@
 # Authors: Daniel Selsam
 
 import socket
-import sys
 import json
 from protos.Command_pb2 import Command
-from handler import Handler
+from models.handler import Handler
 
 
 class Server:

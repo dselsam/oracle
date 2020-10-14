@@ -4,7 +4,34 @@
             "d"     : 16,
             "int"   : {},
             "graph" : { "n_rounds" : 3 },
-            "grid"  : {}
+            "TextTF" : {
+                "ff_dim" : 512,
+                "n_heads" : 8,
+                "n_layers" : 1,
+                "p_dropout" : 0.1
+            },
+            "GridCNN" : {
+                "n_rows" : 3,
+                "n_cols" : 3,
+                "kernel_size" : 3,
+                "n_conv_layers" : 10,
+                "add_channel_pool" : true
+            },
+            "ListLSTM" : {
+                "n_layers" : 1,
+                "p_dropout" : 0,
+                "bidirectional" : true
+            },
+            "PairFF" : {
+                "n_layers" : 2,
+                "p_dropout" : 0.0,
+                "activation" : "leaky_relu"
+            },
+            "SetFF" : {
+                "n_layers" : 2,
+                "p_dropout" : 0.0,
+                "activation" : "leaky_relu"
+            }
         },
 
         "reasoner" : {

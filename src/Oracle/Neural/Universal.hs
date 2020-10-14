@@ -26,11 +26,11 @@ import Data.Vector (Vector)
 import qualified Data.Vector as Vector
 import qualified Data.Text as Text
 
-import qualified Proto.ChoicePoint as P
-import qualified Proto.Label as P
-import qualified Proto.DataPoint as P
-import qualified Proto.Command as P
-import qualified Proto.Response as P
+import qualified Proto.Protos.ChoicePoint as P
+import qualified Proto.Protos.Label as P
+import qualified Proto.Protos.DataPoint as P
+import qualified Proto.Protos.Command as P
+import qualified Proto.Protos.Response as P
 
 init :: P.Command
 init = defMessage & #init .~ defMessage

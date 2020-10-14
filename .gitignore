@@ -6,3 +6,5 @@ src/Proto
 learning/protos
 /oracle.cabal
 /stack.yaml.lock
+/learning/models/tokenizer/
+/thirdparty/
