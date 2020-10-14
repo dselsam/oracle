@@ -54,7 +54,7 @@ class Handler:
     def handle_init(self, init_cmd):
         response = Response()
         response.success = False
-        self.model = GenericModel(self.model_cfg)
+        self.model = GenericModel(self.model_cfg).to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.optim_cfg['learning_rate'])
         response.msg = "Model and optimizer reinitialized"
         response.success = True
@@ -80,6 +80,7 @@ class Handler:
         for _ in range(train_cmd.nEpochs):
             for datapoint in train_cmd.datapoints:
                 snapshot, choices, choice_id = unpack_datapoint(datapoint)
+                choice_id = choice_id.to(self.device)
                 with torch.set_grad_enabled(True):
                     log_prob = self.model(snapshot, choices)
                     loss = self.loss(log_prob, choice_id)
@@ -102,6 +103,7 @@ class Handler:
         self.model.eval()
         for datapoint in valid_cmd.datapoints:
             snapshot, choices, choice_id = unpack_datapoint(datapoint)
+            choice_id = choice_id.to(self.device)
             with torch.set_grad_enabled(False):
                 logits = self.model(snapshot, choices)
                 loss = self.loss(logits, choice_id)
@@ -132,3 +134,7 @@ class Handler:
         response.msg = "Model and optimizer loaded"
         response.success = True
         return response
+
+    @property
+    def device(self):
+        return next(self.parameters()).device
