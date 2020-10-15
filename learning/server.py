@@ -6,19 +6,12 @@ import socket
 import json
 import torch
 from protos.Command_pb2 import Command
-from models.handler import Handler
-
-
-def set_device():
-    if torch.cuda.is_available():
-        return 'cuda'
-    return 'cpu'
+from handler import Handler
 
 
 class Server:
     def __init__(self, handler):
-        device = set_device()
-        self.handler = handler.to(device)
+        self.handler = handler
 
     def launch(self, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

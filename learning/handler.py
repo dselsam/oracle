@@ -26,11 +26,18 @@ def unpack_datapoint(datapoint):
     return snapshot, choices, torch.as_tensor([choice_id])
 
 
+def set_device():
+    if torch.cuda.is_available():
+        return 'cuda'
+    return 'cpu'
+
+
 class Handler:
     def __init__(self, cfg):
         self.model_cfg = cfg['model']
         self.optim_cfg = cfg['optim']
-        self.model = GenericModel(self.model_cfg)
+        self.device = set_device()
+        self.model = GenericModel(self.model_cfg).to(self.device)
         self.loss = nn.NLLLoss()  # can update to KLDivLoss
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.optim_cfg['learning_rate'])
 
@@ -135,6 +142,3 @@ class Handler:
         response.success = True
         return response
 
-    @property
-    def device(self):
-        return next(self.parameters()).device

@@ -11,8 +11,8 @@
                 "p_dropout" : 0.1
             },
             "GridCNN" : {
-                "n_rows" : 3,
-                "n_cols" : 3,
+                "n_rows" : 9,
+                "n_cols" : 9,
                 "kernel_size" : 3,
                 "n_conv_layers" : 10,
                 "add_channel_pool" : true
@@ -42,6 +42,6 @@
 
     "optim" : {
         "learning_rate"  : 3e-4,
-        "grad_norm_clip" : 1.0
+        "grad_norm_clip" : 5.0
     }
 }

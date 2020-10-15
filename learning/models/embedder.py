@@ -10,6 +10,7 @@ from protos.Embeddable_pb2 import Embeddable
 from models.feedforward import FeedForwardNet
 from models.transformer import TextTransformer
 from transformers import GPT2Tokenizer
+from dataclasses import dataclass
 
 
 class Embedder(nn.Module):
@@ -31,8 +32,8 @@ class Embedder(nn.Module):
                           'pad_token': '<pad>',
                           'unk_token': '<unk>'}
         self.tokenizer.add_special_tokens(special_tokens)
-        self.text_encoder = TextTransformer(len(self.tokenizer),
-                                            text_embed_dim=string_cfg['n_heads'] * self.d,
+        self.text_encoder = TextTransformer(vocab_size=len(self.tokenizer),
+                                            text_embed_dim=self.d,
                                             ff_dim=string_cfg['ff_dim'],
                                             n_heads=string_cfg['n_heads'],
                                             n_layers=string_cfg['n_layers'],
@@ -54,7 +55,7 @@ class Embedder(nn.Module):
         bidirectional = list_cfg['bidirectional']
         self.list_encoder = nn.LSTM(bidirectional=bidirectional,
                                     input_size=self.d,
-                                    hidden_size=self.d//2 if bidirectional else self.d,
+                                    hidden_size=self.d // 2 if bidirectional else self.d,
                                     batch_first=True,
                                     num_layers=list_cfg['n_layers'],
                                     dropout=list_cfg['p_dropout']
@@ -76,8 +77,8 @@ class Embedder(nn.Module):
                                           activation=set_cfg['activation'],
                                           p_dropout=set_cfg['p_dropout'])
 
-        self.list_nil = torch.nn.Parameter(torch.nn.init.xavier_normal_(torch.empty([1, self.d])),
-                                           requires_grad=True).view(self.d)
+        # self.list_nil = torch.nn.Parameter(torch.nn.init.xavier_normal_(torch.empty([1, self.d])),
+        #                                    requires_grad=True).view(self.d)
 
     def forward(self, embeddable: List[Embeddable]):
         return self.embed(embeddable)
@@ -85,7 +86,7 @@ class Embedder(nn.Module):
     def embed(self, embeddable):
         # Input: a term of Embeddable protobuf type (<repo>/protos/Embeddable.proto)
         # Output: a fixed dimensional embedding
-        if isinstance(embeddable, torch.FloatTensor) and embeddable.size(-1) == self.d:
+        if isinstance(embeddable, torch.Tensor) and embeddable.size(-1) == self.d:
             return embeddable  # already encoded
 
         kind = embeddable.WhichOneof("body")
@@ -119,8 +120,8 @@ class Embedder(nn.Module):
             raise Exception("[embed] invalid embeddable kind: %s" % kind)
 
         try:
-            assert result.size(0) == self.d
-            assert len(result.size()) == 1
+            assert result.size(-1) == self.d
+            # assert len(result.size()) == 1
         except AssertionError as e:
             print("BAD RESULT: ", result)
             print("BAD RESULT SIZE: ", result.size())
@@ -129,24 +130,25 @@ class Embedder(nn.Module):
         return result
 
     def embed_bool(self, b: List[bool]):
-        bool_embedding = torch.FloatTensor(b, device=self.device).unsqueeze(-1)
+        bool_embedding = torch.as_tensor([[b]]).float().to(self.device)
         return self._zero_pad_1d(bool_embedding)
 
     def embed_int(self, n: List[int]):
-        int_embedding = torch.FloatTensor(n, device=self.device).unsqueeze(-1)
+        int_embedding = torch.as_tensor([[n]]).float().to(self.device)
         return self._zero_pad_1d(int_embedding)
 
     def embed_char(self, c: List):
-        c_id = torch.LongTensor([ord(c_i) for c_i in c]).unsqueeze(-1).to(self.device)
+        # c_id = torch.as_tensor([ord(c)]).to(self.device)
+        c_id = torch.as_tensor([c]).to(self.device)
         return self.char_embedding(c_id)
 
     def embed_string(self, s: List[str]):
         # should we use LSTM instead?
-        tokens = [self.tokenizer(s_i) for s_i in s]
-        max_seq_len = max([len(tokens_i) for tokens_i in tokens])
+        tokens = self.tokenizer(s).input_ids
         pad_token = self.tokenizer.pad_token_id
-        input_tokens = torch.LongTensor([tokens_i + [pad_token] * (max_seq_len - len(tokens_i))
-                                         for tokens_i in tokens]).to(self.device)
+        # max_seq_len = max([len(tokens_i) for tokens_i in tokens])  # when we move on to batching
+        # input_tokens = torch.as_tensor(tokens + [pad_token] * (max_seq_len - len(tokens))).to(self.device)
+        input_tokens = torch.as_tensor([tokens]).to(self.device)
         pad_mask = (input_tokens == pad_token)
         return self.text_encoder(input_tokens, pad_mask)
 
@@ -160,8 +162,8 @@ class Embedder(nn.Module):
         raise Exception("embed_maybe not yet implemented")
 
     def embed_list(self, l: List[Any]):
-        # if len(l) == 0:
-        #     return self.list_nil
+        if not l.elems:
+            return torch.zeros(1, self.d, device=self.device)
         list_elem_embeddings = torch.cat([self.embed(elem).unsqueeze(1) for elem in l.elems], dim=1)
         return self.list_encoder(list_elem_embeddings)[0][:, -1, :]
 
@@ -176,7 +178,6 @@ class Embedder(nn.Module):
 
     def embed_map(self, m):
         # redo
-        from dataclasses import dataclass
         @dataclass
         class SetMessage:
             elems: Set[Any]
@@ -186,7 +187,7 @@ class Embedder(nn.Module):
 
     def embed_grid(self, grid):
         grid_elem_embeddings = torch.stack([self.embed(elem) for elem in grid.elems])
-        grid_embedding = grid_elem_embeddings.view(grid.nRows, grid.nCols, -1)
+        grid_embedding = grid_elem_embeddings.view(1, -1, grid.nRows, grid.nCols)
         return self.grid_encoder(grid_embedding)
 
     def embed_graph(self, graph):
@@ -196,18 +197,26 @@ class Embedder(nn.Module):
     def embed_record(self, record):
         # This should ideally be:
         #    return self.embed(Pair(record.name, record.fields))
-        # name_embedding = self.embed(record.name)
-        # fields_embedding = self.embed(record.fields)  # this should automatically recognize that fields is a list
-        # return self.pair_encoder(torch.cat([name_embedding, fields_embedding], dim=-1))
-        raise NotImplementedError
+        @dataclass
+        class ListMessage:
+            elems: List[Any]
+
+        @dataclass
+        class PairMessage:
+            fst: Any
+            snd: Any
+
+        name_embedding = self.embed_string(record.name)
+        # this should automatically recognize that fields is a list
+        fields_embedding = self.embed_list(ListMessage([self.embed_field(field) for field in record.fields]))
+        return self.embed_pair(PairMessage(name_embedding, fields_embedding))
 
     def embed_field(self, field):  # should we add fields as a type in embed()?
         # Redefine as a pair? see embed_record
         # Also, if value is a float, we need embed_float
-        # name_embedding = self.embed(field.name)
-        # value_embedding = self.embed(field.value)
-        # return self.pair_encoder(torch.cat([name_embedding, value_embedding], dim=-1))
-        raise NotImplementedError
+        name_embedding = self.embed_string(field.name)
+        value_embedding = self.embed(field.value)
+        return self.pair_encoder(torch.cat([name_embedding, value_embedding], dim=-1))
 
     def _zero_pad_1d(self, embedding: torch.FloatTensor):
         """Pads a 1-D tensor with zeros to the right"""

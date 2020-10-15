@@ -38,7 +38,7 @@ class TextTransformer(nn.Module):
         embed = self.embedding(ids) * math.sqrt(self.text_embed_dim)
         embed = self.positional_encoding(embed)
         # pt transformer input must be of shape (seq_len, batch_size, ..) - inelegant
-        embed = self.encoder(embed.transpose(1, 0, 2), src_key_padding_mask=mask).transpose(0, 1, 2)
+        embed = self.encoder(embed.permute(1, 0, 2), src_key_padding_mask=mask).permute(1, 0, 2)
         return embed.mean(1)
 
     def forward(self, input_ids, input_pad_mask):

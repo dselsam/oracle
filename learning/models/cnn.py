@@ -10,7 +10,7 @@ class GridCNN(nn.Module):
         super(GridCNN, self).__init__()
         padding = (kernel_size - 1) // 2
         layer_dims = [input_dim] + hidden_dims
-        self.flat_feature_dim = n_rows * n_cols * (layer_dims[-1] ^ 2)
+        self.flat_feature_dim = n_rows * n_cols * layer_dims[-1]
         conv_layers = [x for i in range(len(layer_dims) - 1)
                        for x in (nn.Conv2d(layer_dims[i], layer_dims[i+1], kernel_size=kernel_size, padding=padding),
                                  nn.LeakyReLU())
