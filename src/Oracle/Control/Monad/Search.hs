@@ -33,6 +33,7 @@ class (Monad m) => MonadSearch m where
   deadend  :: String -> m a
   done     :: a -> m a
   choice'  :: Embeddable -> Vector (Embeddable, m a) -> m a
+  reward'  :: Float -> m a -> m a
 
 choice :: (MonadSearch m, HasToEmbeddable cp, HasToEmbeddable c) => cp -> [(c, m a)] -> m a
 choice cp cs = choice' (toEmbeddable cp) $ fmap (\(c, psi) -> (toEmbeddable c, psi)) (Vector.fromList cs)
@@ -46,6 +47,9 @@ oneOf_ cs = oneOf () (map (\c -> ((), c)) cs)
 oneOfSelf :: (MonadSearch m, HasToEmbeddable cp, HasToEmbeddable c) => cp -> [c] -> m c
 oneOfSelf cp cs = oneOf cp (fmap (\c -> (c, c)) cs)
 
+reward :: (MonadSearch m) => Float -> m ()
+reward r = reward' r (done ())
+
 liftO :: (MonadSearch m) => Maybe a -> m a
 liftO opt = case opt of
   Nothing -> deadend "liftO failed"
@@ -54,6 +58,11 @@ liftO opt = case opt of
 instance (HasToEmbeddable s, MonadSearch m) => MonadSearch (StateT s m) where
   deadend       = lift . deadend
   done          = lift . done
+  reward' r k   = do
+    s <- get
+    (x, s) <- lift $ reward' r (runStateT k s)
+    put s
+    pure x
   choice' cp cs = do
     s <- get
     let cs' = flip fmap cs $ \(c, f) -> (c, runStateT f s)
@@ -64,6 +73,10 @@ instance (HasToEmbeddable s, MonadSearch m) => MonadSearch (StateT s m) where
 instance (HasToEmbeddable r, MonadSearch m) => MonadSearch (ReaderT r m) where
   deadend       = lift . deadend
   done          = lift . done
+  reward' r k   = do
+    s <- ask
+    x <- lift $ reward' r (runReaderT k s)
+    pure x
   choice' cp cs = do
     r <- ask
     let cs' = flip fmap cs $ \(c, f) -> (c, runReaderT f r)
@@ -77,8 +90,10 @@ data SearchT m a = SearchT (m (Status m a))
 
 data Status m a = Fail
                 | Done a
+                | Reward Float (SearchT m a)
                 | Choice (ChoicePoint m a)
 
+-- oracle :: ChoicePoint -> Vector Float
 data ChoicePoint m a = ChoicePoint {
   snapshot :: Embeddable,
   choices  :: Vector (Embeddable, SearchT m a)
@@ -93,12 +108,14 @@ instance (Monad m) => Monad (SearchT m) where
     case status of
       Fail                       -> return $ Fail
       Done x                     -> let SearchT y = g x in y
+      Reward r k                 -> return $ Reward r $ k >>= g
       Choice (ChoicePoint cp cs) -> return $ Choice (ChoicePoint cp $ fmap (\(c, k) -> (c, k >>= g)) cs)
   return x = SearchT (return $ Done x)
 
 instance (Monad m) => MonadSearch (SearchT m) where
   deadend _     = SearchT (pure Fail)
   done x        = SearchT (pure $ Done x)
+  reward' r k   = SearchT (pure $ Reward r k)
   choice' cp cs = SearchT $ pure $ Choice $ ChoicePoint cp cs
 
 instance (Monad m) => Applicative (SearchT m) where
