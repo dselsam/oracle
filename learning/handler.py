@@ -74,7 +74,7 @@ class Handler:
         for choicepoint in predict_cmd.choicepoints:
             with torch.set_grad_enabled(False):
                 log_prob = self.model(choicepoint.snapshot, choicepoint.choices)
-                prediction = log_prob.argmax(dim=-1)
+                prediction = log_prob
                 response.predictions.append(prediction)
 
         response.success = True

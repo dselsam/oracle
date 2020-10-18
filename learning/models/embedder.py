@@ -145,12 +145,12 @@ class Embedder(nn.Module):
         pad_token = self.tokenizer.pad_token_id
         # max_seq_len = max([len(tokens_i) for tokens_i in tokens])  # when we move on to batching
         # input_tokens = torch.as_tensor(tokens + [pad_token] * (max_seq_len - len(tokens))).to(self.device)
-        input_tokens = torch.as_tensor([tokens]).to(self.device)
-        input_embedding = self.text_embedding(input_tokens)
+        tokens_tensor = torch.as_tensor([tokens]).to(self.device)
+        input_embedding = self.text_embedding(tokens_tensor)
         if len(s) == 1:
-            return input_embedding
-        pad_mask = (input_tokens == pad_token)
-        return self.list_encoder(input_embedding)
+            return input_embedding.squeeze(0)
+        return self.list_encoder(input_embedding)[0][:, -1, :]
+        # pad_mask = (tokens_tensor == pad_token)
         # return self.text_encoder(input_embedding, pad_mask)
 
     def embed_pair(self, pair: List):
@@ -164,7 +164,7 @@ class Embedder(nn.Module):
 
     def embed_list(self, l: List[Any]):
         if not l.elems:
-            return torch.zeros(1, self.d, device=self.device)
+            return self.list_nil
         list_elem_embeddings = torch.cat([self.embed(elem).unsqueeze(1) for elem in l.elems], dim=1)
         return self.list_encoder(list_elem_embeddings)[0][:, -1, :]
 
