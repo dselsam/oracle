@@ -26,16 +26,14 @@ class PositionalEncoding(nn.Module):
 
 
 class TextTransformer(nn.Module):
-    def __init__(self, vocab_size, text_embed_dim, ff_dim, n_heads, n_layers, dropout=0.0, pad_token_id=None):
+    def __init__(self, text_embed_dim, ff_dim, n_heads, n_layers, dropout=0.0):
         super(TextTransformer, self).__init__()
-        self.text_embed_dim = text_embed_dim
-        self.embedding = nn.Embedding(vocab_size, text_embed_dim, padding_idx=pad_token_id)
         self.positional_encoding = PositionalEncoding(d_model=text_embed_dim, dropout=dropout)
         enc_layer = nn.TransformerEncoderLayer(d_model=text_embed_dim, dim_feedforward=ff_dim, nhead=n_heads)
         self.encoder = nn.TransformerEncoder(enc_layer, num_layers=n_layers)
 
-    def encode(self, ids, mask):
-        embed = self.embedding(ids) * math.sqrt(self.text_embed_dim)
+    def encode(self, input_embedding, mask):
+        embed = input_embedding * math.sqrt(self.text_embed_dim)
         embed = self.positional_encoding(embed)
         # pt transformer input must be of shape (seq_len, batch_size, ..) - inelegant
         embed = self.encoder(embed.permute(1, 0, 2), src_key_padding_mask=mask).permute(1, 0, 2)

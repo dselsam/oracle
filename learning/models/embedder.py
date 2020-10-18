@@ -18,10 +18,9 @@ class Embedder(nn.Module):
         super(Embedder, self).__init__()
         self.cfg = cfg
         self.d = cfg['d']
-        self.char_vocab = None
 
-        ## Char ##
-        self.char_embedding = nn.Embedding(256, self.d)
+        ## Bool ##
+        self.bool_embedding = nn.Embedding(2, self.d)
 
         ## String ##
         # Cannot construct vocab online due to initialization of embedding layer
@@ -29,16 +28,15 @@ class Embedder(nn.Module):
         self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2', cache_dir='./learning/models/tokenizer')
         special_tokens = {'bos_token': '<s>',
                           'eos_token': '</s>',
-                          'pad_token': '<pad>',
-                          'unk_token': '<unk>'}
+                          'pad_token': '<pad>'
+                          }
         self.tokenizer.add_special_tokens(special_tokens)
-        self.text_encoder = TextTransformer(vocab_size=len(self.tokenizer),
-                                            text_embed_dim=self.d,
+        self.text_embedding = nn.Embedding(len(self.tokenizer), self.d, padding_idx=self.tokenizer.pad_token_id)
+        self.text_encoder = TextTransformer(text_embed_dim=self.d,
                                             ff_dim=string_cfg['ff_dim'],
                                             n_heads=string_cfg['n_heads'],
                                             n_layers=string_cfg['n_layers'],
-                                            dropout=string_cfg['p_dropout'],
-                                            pad_token_id=self.tokenizer.pad_token_id)
+                                            dropout=string_cfg['p_dropout'])
 
         ## Grid ##
         grid_cfg = cfg['GridCNN']
@@ -58,8 +56,7 @@ class Embedder(nn.Module):
                                     hidden_size=self.d // 2 if bidirectional else self.d,
                                     batch_first=True,
                                     num_layers=list_cfg['n_layers'],
-                                    dropout=list_cfg['p_dropout']
-                                    )
+                                    dropout=list_cfg['p_dropout'])
 
         ## Pair ##
         pair_cfg = cfg['PairFF']
@@ -77,8 +74,8 @@ class Embedder(nn.Module):
                                           activation=set_cfg['activation'],
                                           p_dropout=set_cfg['p_dropout'])
 
-        # self.list_nil = torch.nn.Parameter(torch.nn.init.xavier_normal_(torch.empty([1, self.d])),
-        #                                    requires_grad=True).view(self.d)
+        self.list_nil = torch.nn.Parameter(torch.nn.init.xavier_normal_(torch.empty([1, self.d])),
+                                           requires_grad=True).view(self.d)
 
     def forward(self, embeddable: List[Embeddable]):
         return self.embed(embeddable)
@@ -130,17 +127,17 @@ class Embedder(nn.Module):
         return result
 
     def embed_bool(self, b: List[bool]):
-        bool_embedding = torch.as_tensor([[b]]).float().to(self.device)
-        return self._zero_pad_1d(bool_embedding)
+        b = torch.tensor([b]).int().to(self.device)
+        return self.bool_embedding(b)
 
     def embed_int(self, n: List[int]):
         int_embedding = torch.as_tensor([[n]]).float().to(self.device)
         return self._zero_pad_1d(int_embedding)
 
     def embed_char(self, c: List):
-        # c_id = torch.as_tensor([ord(c)]).to(self.device)
-        c_id = torch.as_tensor([c]).to(self.device)
-        return self.char_embedding(c_id)
+        if isinstance(c, int):
+            return self.embed_string(chr(c))
+        return self.embed_string(c)
 
     def embed_string(self, s: List[str]):
         # should we use LSTM instead?
@@ -149,8 +146,12 @@ class Embedder(nn.Module):
         # max_seq_len = max([len(tokens_i) for tokens_i in tokens])  # when we move on to batching
         # input_tokens = torch.as_tensor(tokens + [pad_token] * (max_seq_len - len(tokens))).to(self.device)
         input_tokens = torch.as_tensor([tokens]).to(self.device)
+        input_embedding = self.text_embedding(input_tokens)
+        if len(s) == 1:
+            return input_embedding
         pad_mask = (input_tokens == pad_token)
-        return self.text_encoder(input_tokens, pad_mask)
+        return self.list_encoder(input_embedding)
+        # return self.text_encoder(input_embedding, pad_mask)
 
     def embed_pair(self, pair: List):
         pair_embedding = torch.cat([self.embed(pair.fst),
