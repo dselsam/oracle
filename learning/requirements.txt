@@ -1,3 +1,4 @@
-torch
-torchtext
-tqdm
+torch==1.6.0
+torchtext==0.7.0
+numpy==1.19.2
+transformers==3.3.1

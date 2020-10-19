@@ -3,7 +3,6 @@
 # Authors: Daniel Selsam
 
 import socket
-import sys
 import json
 from handler import Handler
 from protos.Command_pb2 import Command
@@ -31,6 +30,7 @@ class Server:
                 connection.sendall(response.SerializeToString())
             finally:
                 connection.close()
+
 
 if __name__ == "__main__":
     import argparse
