@@ -72,11 +72,10 @@ class Handler:
         response.success = False
         self.model.eval()
         for choicepoint in predict_cmd.choicepoints:
-            with torch.set_grad_enabled(False):
+            with torch.no_grad():
                 log_prob = self.model(choicepoint.snapshot, choicepoint.choices)
                 prediction = log_prob
                 response.predictions.append(prediction)
-
         response.success = True
         return response
 
@@ -88,9 +87,8 @@ class Handler:
             for datapoint in train_cmd.datapoints:
                 snapshot, choices, choice_id = unpack_datapoint(datapoint)
                 choice_id = choice_id.to(self.device)
-                with torch.set_grad_enabled(True):
-                    log_prob = self.model(snapshot, choices)
-                    loss = self.loss(log_prob, choice_id)
+                log_prob = self.model(snapshot, choices)
+                loss = self.loss(log_prob, choice_id)
 
                 self.model.zero_grad()
                 loss.backward()
@@ -98,7 +96,6 @@ class Handler:
                 self.optimizer.step()
                 total_loss += loss
                 n_steps += 1
-
         response = Response()
         response.loss = total_loss / n_steps if n_steps > 0 else float('nan')
         response.success = True
@@ -111,12 +108,11 @@ class Handler:
         for datapoint in valid_cmd.datapoints:
             snapshot, choices, choice_id = unpack_datapoint(datapoint)
             choice_id = choice_id.to(self.device)
-            with torch.set_grad_enabled(False):
+            with torch.no_grad():
                 logits = self.model(snapshot, choices)
                 loss = self.loss(logits, choice_id)
             total_loss += loss
             n_steps += 1
-
         response = Response()
         response.loss = total_loss / n_steps if n_steps > 0 else float('nan')
         response.success = True

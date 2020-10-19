@@ -22,6 +22,10 @@ class Embedder(nn.Module):
         ## Bool ##
         self.bool_embedding = nn.Embedding(2, self.d)
 
+
+        ## Int ##
+        self.int_embedding = nn.Embedding(10, self.d)
+
         ## String ##
         # Cannot construct vocab online due to initialization of embedding layer
         string_cfg = cfg['TextTF']
@@ -46,6 +50,7 @@ class Embedder(nn.Module):
                                     hidden_dims=[self.d for _ in range(grid_cfg['n_conv_layers'])],
                                     output_dim=self.d,
                                     kernel_size=grid_cfg['kernel_size'],
+                                    activation=grid_cfg['activation'],
                                     add_channel_pool=grid_cfg['add_channel_pool'])
 
         ## List ##
@@ -74,8 +79,7 @@ class Embedder(nn.Module):
                                           activation=set_cfg['activation'],
                                           p_dropout=set_cfg['p_dropout'])
 
-        self.list_nil = torch.nn.Parameter(torch.nn.init.xavier_normal_(torch.empty([1, self.d])),
-                                           requires_grad=True).view(self.d)
+        self.list_nil = torch.nn.Parameter(torch.nn.init.xavier_normal_(torch.empty(1, self.d)))
 
     def forward(self, embeddable: List[Embeddable]):
         return self.embed(embeddable)
@@ -83,9 +87,9 @@ class Embedder(nn.Module):
     def embed(self, embeddable):
         # Input: a term of Embeddable protobuf type (<repo>/protos/Embeddable.proto)
         # Output: a fixed dimensional embedding
+
         if isinstance(embeddable, torch.Tensor) and embeddable.size(-1) == self.d:
             return embeddable  # already encoded
-
         kind = embeddable.WhichOneof("body")
         if kind == "b":
             result = self.embed_bool(embeddable.b)
@@ -127,12 +131,14 @@ class Embedder(nn.Module):
         return result
 
     def embed_bool(self, b: List[bool]):
-        b = torch.tensor([b]).int().to(self.device)
+        b = torch.as_tensor([b]).int().to(self.device)
         return self.bool_embedding(b)
 
     def embed_int(self, n: List[int]):
-        int_embedding = torch.as_tensor([[n]]).float().to(self.device)
-        return self._zero_pad_1d(int_embedding)
+        # int_embedding = torch.as_tensor([[n]]).float().to(self.device)
+        n = torch.as_tensor([n]).to(self.device)
+        return self.int_embedding(n)
+        # return self._zero_pad_1d(int_embedding)
 
     def embed_char(self, c: List):
         if isinstance(c, int):
